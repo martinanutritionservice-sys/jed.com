@@ -1,0 +1,1381 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Catálogo de filtros JED: buscá por código, por equivalencia o por marca y modelo de vehículo.">
+<title>Catálogo JED</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap">
+<style>
+  /* Sitio JED: bandas negras de marca sobre fondo crudo, chevrones verdes como motivo, catálogo en grilla */
+  :root {
+    --ink: #1A1A1A;
+    --ink-2: #242529;
+    --green: #2CA861;
+    --green-dark: #126636;
+    --cream: #F1ECE8;
+    --paper: #FBFAF9;
+    --line: #DED8D3;
+    --muted: #6B6F76;
+    --dim: #A7A29E;
+    --red: #C61510;
+    --on-dark: #B8BCC0;
+    --font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font); font-size: 16px; line-height: 1.5;
+  }
+  .wrap {
+    width: 100%; max-width: 1120px; margin-inline: auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  h1, h2, h3 { margin: 0; font-weight: 800; text-wrap: balance; letter-spacing: -0.01em; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); }
+  .label-dark { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-dark); }
+
+  /* ---------- header ---------- */
+  .site-head { background: var(--ink); }
+  .site-head .wrap { padding-block: 16px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .logo { height: 26px; width: auto; display: block; }
+  nav { display: flex; gap: 22px; margin-left: auto; flex-wrap: wrap; }
+  nav button {
+    background: none; border: none; padding: 4px 0; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #fff; border-bottom: 2px solid transparent;
+  }
+  nav button:hover { color: var(--green); }
+  nav button[aria-current="page"] { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ---------- hero ---------- */
+  .hero { background: var(--ink); color: #fff; position: relative; overflow: hidden; }
+  .hero::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; z-index: 2;
+    background: linear-gradient(90deg, #2CA861 0 25%, #FFFFFF 25% 50%, #C61510 50% 75%, #2B7FD9 75% 100%);
+  }
+  .hero .wrap { padding-block: 44px 48px; position: relative; z-index: 1; }
+  .hero h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.05; max-width: 15ch; margin-top: 10px; }
+  .hero p { color: var(--on-dark); max-width: 46ch; margin: 12px 0 0; }
+  .chevrons { position: absolute; right: -40px; top: 0; height: 100%; pointer-events: none; }
+  @media (max-width: 880px) { .chevrons { display: none; } }
+
+  .search-row { display: flex; margin-top: 22px; max-width: 540px; }
+  .search-row input {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 16px;
+    padding: 15px 16px; border: none; border-radius: 4px 0 0 4px; background: #fff; color: var(--ink);
+  }
+  .search-row button {
+    border: none; border-radius: 0 4px 4px 0; padding: 0 24px; background: var(--green); color: var(--ink);
+    font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .search-row button:hover { background: #35BC6E; }
+  .hint { font-size: 13px; color: #8A9096; margin-top: 10px; }
+  .hint code { color: var(--green); }
+
+  /* ---------- bands ---------- */
+  .band-cream { background: var(--cream); border-block: 1px solid var(--line); }
+  .band-cream .wrap { padding-block: 40px; }
+  .band-green { background: var(--green); }
+  .band-green .wrap {
+    padding-block: 30px; display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .band-green h2 { font-size: clamp(20px, 3vw, 26px); color: var(--ink); }
+  .band-green p { margin: 4px 0 0; color: #14331F; font-size: 15px; }
+
+  section.plain .wrap { padding-block: 40px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .section-head h2 { font-size: 22px; }
+  .link-green { background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 700; color: var(--green-dark); }
+  .link-green:hover { text-decoration: underline; }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+  .line-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; text-align: left; font-family: inherit; cursor: pointer;
+  }
+  .line-card:hover { border-color: var(--green); }
+  .line-card .name { font-size: 17px; font-weight: 800; }
+  .line-card .state { font-size: 13px; color: var(--muted); }
+  .line-card.soon { cursor: default; opacity: 0.75; }
+  .line-card.soon:hover { border-color: var(--line); }
+
+  /* ---------- catálogo ---------- */
+  .vehicle { background: var(--cream); border-bottom: 1px solid var(--line); }
+  .vehicle .wrap { padding-block: 20px; display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 170px; min-width: 0; }
+  .field label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-dark); }
+  .field select {
+    font-family: inherit; font-size: 15px; padding: 11px 12px;
+    border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink);
+  }
+  .field select:disabled { color: var(--dim); background: #F6F3F1; }
+  .btn-dark {
+    border: none; border-radius: 4px; padding: 12px 22px; background: var(--ink); color: #fff;
+    font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+  }
+  .btn-dark:hover { background: var(--ink-2); }
+
+  .results-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .count { color: var(--muted); font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+
+  .card {
+    border: 1px solid var(--line); border-top: 4px solid var(--c, var(--line));
+    border-radius: 8px; background: #fff; overflow: hidden;
+    text-align: left; font-family: inherit; cursor: pointer; padding: 0; display: flex; flex-direction: column;
+  }
+  .card:hover { border-color: var(--line); border-top-color: var(--c, var(--line)); }
+  .card .thumb { height: 165px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 12px; }
+  .card .body { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .card .code { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .card .meta { font-size: 13px; color: var(--muted); }
+  .card .apps { font-size: 13px; font-weight: 600; color: var(--ci, var(--green-dark)); }
+  .card .pending { font-size: 13px; color: var(--dim); }
+
+  .empty { border: 1px dashed var(--line); border-radius: 8px; padding: 32px 20px; text-align: center; color: var(--muted); }
+  .empty strong { color: var(--ink); display: block; margin-bottom: 4px; }
+
+  .detail { border: 1px solid var(--line); border-radius: 8px; background: #fff; overflow: hidden; }
+  .detail-top { display: flex; gap: 28px; padding: 24px; flex-wrap: wrap; }
+  .detail-photo { flex: 0 0 290px; height: 290px; background: #FFFFFF; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 13px; }
+  .detail-info { flex: 1 1 280px; min-width: 0; }
+  .detail-info h2 { font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .detail-info .type { color: var(--muted); font-size: 15px; margin-top: 4px; }
+  .block-label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-dark); margin-top: 20px; margin-bottom: 8px; }
+  .app-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .app-list li { font-size: 15px; color: var(--ink-2); }
+  .equiv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .equiv { background: var(--cream); border-radius: 6px; padding: 16px; text-align: center; }
+  .equiv .c { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .equiv .b { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .back { background: none; border: none; font-family: inherit; font-size: 14px; color: var(--muted); cursor: pointer; padding: 0; margin-bottom: 14px; }
+  .back:hover { color: var(--green-dark); }
+  .note { font-size: 13px; color: #8A8681; margin-top: 18px; }
+  .ph { color: var(--dim); }
+
+  /* ---------- empresa / contacto ---------- */
+  .two-col { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+  .two-col > * { flex: 1 1 300px; min-width: 0; }
+  .box-photo { height: 200px; background: #fff; border: 1px solid var(--line); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 13px; }
+  .contact-card { background: var(--ink); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+  .contact-card .k { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); }
+  .contact-card .v { font-size: 18px; font-weight: 700; color: #fff; word-break: break-word; }
+
+  /* ---------- banda visual antes del pie ---------- */
+  .prefoot { position: relative; background: var(--ink); overflow: hidden; min-height: 300px; display: flex; align-items: center; }
+  .prefoot-photo {
+    position: absolute; inset: 0;
+    background-image: url('images/auto-jed.jpg');
+    background-size: cover; background-position: 62% 50%;
+  }
+  .prefoot-shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #1A1A1A 10%, rgba(26, 26, 26, 0.72) 32%, rgba(26, 26, 26, 0.12) 62%, rgba(26, 26, 26, 0) 100%);
+  }
+  .prefoot-tex {
+    position: absolute; inset: 0; opacity: 0.2;
+    background: url('images/texturas/chevron-verde.jpg') center / cover no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 22%, transparent 50%);
+    mask-image: linear-gradient(90deg, #000 0%, #000 22%, transparent 50%);
+  }
+  @media (max-width: 760px) {
+    .prefoot-photo { opacity: 0.55; background-position: 70% 50%; }
+    .prefoot-shade { background: linear-gradient(180deg, rgba(26,26,26,0.88), rgba(26,26,26,0.62)); }
+  }
+  .prefoot .wrap { position: relative; z-index: 2; padding-block: 56px; }
+  .prefoot-logo { width: min(260px, 60%); height: auto; display: block; }
+  .prefoot-claim { color: #fff; font-size: clamp(20px, 3.4vw, 30px); font-weight: 800; margin: 18px 0 0; max-width: 16ch; letter-spacing: -0.01em; }
+  .prefoot-note { font-size: 12px; margin: 14px 0 0; max-width: 42ch; }
+
+  /* ---------- footer ---------- */
+  footer { background: var(--ink); color: var(--on-dark); }
+  footer .wrap { padding-block: 22px 24px; display: flex; justify-content: flex-start; }
+  footer .f-solo { display: flex; flex-direction: column; gap: 10px; }
+  footer .f-title { font-size: 11px; margin: 0; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+  footer p { margin: 0; font-size: 14px; line-height: 1.9; }
+  footer a, .contact-card a {
+    color: inherit; text-decoration: none; border-bottom: 1px solid transparent;
+  }
+  footer a:hover, footer a:focus-visible, .contact-card a:hover, .contact-card a:focus-visible {
+    color: var(--green); border-bottom-color: var(--green);
+  }
+
+  :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+  /* ---------- slides del hero ---------- */
+  .slides { position: relative; min-height: 310px; }
+  .slide { animation: fade .45s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .slide h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.05; max-width: 15ch; margin-top: 10px; }
+  .slide p { color: var(--on-dark); max-width: 46ch; margin: 12px 0 0; }
+  .slide .eyebrow { color: var(--slide-accent, var(--green)); }
+  .slide-cta {
+    margin-top: 22px; border: none; border-radius: 4px; padding: 14px 26px;
+    background: var(--slide-accent, var(--green)); color: var(--slide-on, var(--ink));
+    font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .slide-nav { display: flex; align-items: center; gap: 14px; margin-top: 26px; }
+  .dots { display: flex; gap: 8px; }
+  .dot {
+    width: 9px; height: 9px; padding: 0; border: none; border-radius: 50%;
+    background: #4A4E54; cursor: pointer;
+  }
+  .dot[aria-current="true"] { background: var(--slide-accent, var(--green)); width: 26px; border-radius: 5px; }
+
+  /* ---------- líneas de producto, una por color ---------- */
+  .lines { background: var(--cream); border-bottom: 1px solid var(--line); }
+  .lines .wrap { padding-block: 48px 44px; }
+  .lines .eyebrow { display: block; color: var(--green-dark); }
+  .lines h2 { color: var(--ink); font-size: 27px; margin-top: 10px; }
+  .lines .sub { color: var(--muted); font-size: 15px; margin: 8px 0 24px; max-width: 54ch; }
+  .line {
+    background: var(--paper); border: 1px solid var(--line); border-top: 4px solid var(--cs);
+    border-radius: 8px; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; text-align: left; font-family: inherit; cursor: pointer;
+  }
+  .line:hover { border-color: var(--line); border-top-color: var(--cs); }
+  .line[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--cs); }
+  .line .name { font-size: 17px; font-weight: 800; color: var(--ci); }
+  .line .state { font-size: 13px; color: var(--muted); }
+  .type-accent .code { color: var(--accent-type, var(--ink)); }
+  .type-accent #resultsTitle { color: var(--accent-type, var(--ink)); }
+
+  /* ---------- interacciones ---------- */
+  .logo-btn { background: none; border: none; padding: 0; cursor: pointer; line-height: 0; transition: transform .25s ease, filter .25s ease; }
+  .logo-btn:hover { transform: translateX(3px); filter: drop-shadow(0 0 10px rgba(44, 168, 97, 0.55)); }
+
+  nav button { position: relative; border-bottom: none; }
+  nav button::after {
+    content: ""; position: absolute; left: 0; right: 100%; bottom: -2px; height: 2px;
+    background: var(--green); transition: right .25s ease;
+  }
+  nav button:hover::after, nav button[aria-current="page"]::after { right: 0; }
+
+  .card { transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(26, 26, 26, 0.10); }
+  .card .thumb { transition: background .22s ease, letter-spacing .22s ease; }
+  .card:hover .thumb { background: #E7E0DA; letter-spacing: 0.06em; }
+  .card .code { transition: color .22s ease; }
+  .card:hover .code { color: var(--ci, var(--green-dark)); }
+
+  .line { transition: transform .22s ease, box-shadow .22s ease; }
+  .line:hover { transform: translateY(-4px); box-shadow: 0 12px 26px rgba(26, 26, 26, 0.10); }
+  .line svg { transition: transform .3s cubic-bezier(.2, .7, .3, 1); }
+  .line:hover svg { transform: translateX(10px); }
+
+  .slide-cta, .search-row button, .btn-dark { transition: transform .18s ease, background .18s ease, filter .18s ease; }
+  .slide-cta:hover, .search-row button:hover, .btn-dark:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+  .dot { transition: background .25s ease, width .25s ease; }
+  .equiv { transition: transform .2s ease, background .2s ease; }
+  .equiv:hover { transform: translateY(-3px); background: #E7E0DA; }
+
+  .chevrons, .prefoot-tex, .prefoot-photo { transition: transform .4s cubic-bezier(.2, .7, .3, 1); will-change: transform; }
+  .prefoot-logo { transition: transform .35s ease; }
+  .prefoot:hover .prefoot-logo { transform: translateX(8px); }
+
+  footer .f-icons { display: flex; gap: 10px; align-items: center; margin: 0; }
+  footer .icon-link {
+    display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center;
+    border: 1px solid #33363B; border-radius: 6px; color: var(--on-dark);
+    transition: color .2s ease, border-color .2s ease, transform .2s ease, background .2s ease;
+  }
+  footer .icon-link svg { width: 18px; height: 18px; }
+  footer .icon-link:hover, footer .icon-link:focus-visible {
+    color: var(--green); border-color: var(--green); background: #202023; transform: translateY(-3px);
+  }
+
+  .type-banner { background: var(--tb-bg, #2CA861); color: var(--tb-fg, #1A1A1A); }
+  .type-banner .wrap {
+    padding-block: 14px; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .tb-name { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+  .tb-clear {
+    background: none; border: 1px solid currentColor; color: inherit; border-radius: 4px;
+    padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: background .2s ease;
+  }
+  .tb-clear:hover { background: rgba(0, 0, 0, 0.12); }
+  .type-accent .field label { color: var(--accent-type, var(--green-dark)); }
+  .type-accent .card:hover { border-color: var(--accent-type, var(--green)); }
+  .type-accent .card:hover .code { color: var(--accent-type, var(--green-dark)); }
+  .type-accent .card .apps { color: var(--accent-type, var(--green-dark)); }
+
+  .card .thumb { padding: 0; overflow: hidden; }
+  .card .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; transition: transform .35s ease; }
+  .card:hover .thumb img { transform: scale(1.05); }
+  .detail-photo.has-photo { padding: 0; overflow: hidden; }
+  .detail-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  .dot-type {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+    margin-right: 7px; vertical-align: 1px; box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.18);
+  }
+  .detail-strip {
+    background: var(--d-strip); color: var(--d-on);
+    padding: 11px 24px; font-size: 12px; font-weight: 800; letter-spacing: 0.14em;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail { border-top: 3px solid var(--d-strip, var(--line)); }
+  .detail-info h2 { color: var(--d-ink, var(--ink)); }
+  .detail .block-label { color: var(--d-ink, var(--green-dark)); }
+  .detail-photo { box-shadow: inset 0 0 0 1px var(--line); }
+
+  /* ---------- comparador ---------- */
+  .cmp-intro { color: var(--muted); max-width: 70ch; margin: -6px 0 24px; }
+  .cmp-heads { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cmp-head { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .cmp-label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .cmp-select {
+    font-family: inherit; font-size: 15px; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); width: 100%;
+  }
+  .cmp-card {
+    border: 1px solid var(--line); border-top: 3px solid var(--c-hue, var(--line));
+    border-radius: 8px; background: #fff; overflow: hidden; min-height: 150px;
+    display: flex; align-items: center; gap: 16px; padding: 16px;
+  }
+  .cmp-card .ph-box {
+    width: 110px; height: 110px; flex-shrink: 0; border-radius: 6px; overflow: hidden;
+    background: #FFFFFF; display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 11px; text-align: center;
+  }
+  .cmp-card .ph-box img { width: 100%; height: 100%; object-fit: contain; }
+  .cmp-card .cmp-code { display: block; font-size: 28px; font-weight: 800; color: var(--c-ink, var(--ink)); line-height: 1; }
+  .cmp-card .cmp-type { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .cmp-card .cmp-empty { color: var(--dim); font-size: 14px; }
+
+  .cmp-verdict {
+    margin-top: 22px; border-radius: 8px; padding: 16px 20px; font-size: 15px;
+    background: var(--cream); border-left: 4px solid var(--green-dark);
+  }
+  .cmp-verdict strong { color: var(--ink); }
+  .cmp-verdict.no { border-left-color: var(--muted); }
+
+  .cmp-table-wrap { overflow-x: auto; margin-top: 22px; }
+  .cmp-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  .cmp-table th, .cmp-table td {
+    text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line);
+    font-size: 14px; vertical-align: top;
+  }
+  .cmp-table th {
+    width: 190px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); background: var(--cream);
+  }
+  .cmp-table td { font-variant-numeric: tabular-nums; }
+  .cmp-table .same { color: var(--green-dark); font-weight: 700; }
+  .cmp-table .none { color: var(--dim); }
+  .cmp-table ul { margin: 0; padding-left: 16px; }
+  .cmp-table li { margin-bottom: 3px; }
+  .cmp-table li.match { color: var(--green-dark); font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .cmp-heads { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- zoom de la foto ---------- */
+  .zoomable { cursor: zoom-in; }
+  .zoom {
+    position: fixed; inset: 0; z-index: 200; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(26, 26, 26, 0.82); backdrop-filter: blur(3px);
+    animation: zoomIn .18s ease both;
+  }
+  .zoom[open] { display: flex; }
+  .zoom-box {
+    position: relative; background: #FFFFFF; border-radius: 10px; padding: 14px;
+    max-width: min(760px, 92vw); width: 100%;
+    animation: zoomPop .22s cubic-bezier(.2, .8, .3, 1) both;
+  }
+  .zoom-box img {
+    display: block; width: 100%; max-height: 72vh; object-fit: contain;
+    border-radius: 4px; transition: transform .3s ease; transform-origin: center;
+  }
+  .zoom-box img.mas { transform: scale(1.6); cursor: zoom-out; }
+  .zoom-cap {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-top: 10px; padding: 0 2px;
+  }
+  .zoom-cap .code { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .zoom-cap .hint { font-size: 12px; color: var(--muted); }
+  .zoom-close {
+    position: absolute; top: -14px; right: -14px; width: 36px; height: 36px; border-radius: 50%;
+    border: none; background: #FFFFFF; color: var(--ink); font-size: 19px; line-height: 1;
+    cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  }
+  .zoom-close:hover { background: var(--cream); }
+  @keyframes zoomIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes zoomPop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+
+  /* ---------- separador por línea en el catálogo completo ---------- */
+  .grid-wrap { display: block; }
+  .tipo-sep { display: flex; align-items: center; gap: 14px; margin: 38px 0 16px; }
+  .tipo-sep:first-child { margin-top: 2px; }
+  .tipo-sep .pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: #FFFFFF; color: var(--ci); box-shadow: inset 0 0 0 1.5px var(--cs);
+    font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 9px 15px; border-radius: 4px; white-space: nowrap;
+  }
+  .tipo-sep .cuenta { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .tipo-sep .regla { flex: 1; height: 2px; background: var(--cs); opacity: 0.3; border-radius: 2px; }
+  @media (max-width: 560px) {
+    .tipo-sep { flex-wrap: wrap; gap: 10px; }
+    .tipo-sep .regla { order: 3; flex-basis: 100%; }
+  }
+
+  /* ---------- subrayado de los títulos de sección ---------- */
+  .section-head h2, .lines h2, .plain h2 { position: relative; }
+  .section-head h2::after,
+  .lines h2::after {
+    content: ''; display: block; height: 4px; width: 56px; border-radius: 2px;
+    background: var(--green); margin-top: 11px;
+    transform-origin: left center; transition: width .35s cubic-bezier(.2, .8, .3, 1);
+  }
+  .section-head:hover h2::after,
+  .lines .wrap:hover h2::after { width: 92px; }
+
+  /* ---------- más vida al pasar el mouse ---------- */
+  .app-list li {
+    position: relative; padding-left: 0; border-radius: 4px;
+    transition: padding-left .2s ease, color .2s ease;
+  }
+  .app-list li::before {
+    content: ''; position: absolute; left: 0; top: 50%; width: 0; height: 2px;
+    background: var(--d-ink, var(--green-dark)); transform: translateY(-50%);
+    transition: width .2s ease;
+  }
+  .app-list li:hover { padding-left: 18px; color: var(--ink); }
+  .app-list li:hover::before { width: 12px; }
+
+  .equiv { cursor: default; }
+  .equiv:hover { box-shadow: 0 8px 18px rgba(26, 26, 26, 0.10); }
+
+  .detail-photo.has-photo img { transition: transform .4s cubic-bezier(.2, .8, .3, 1); }
+  .detail-photo.has-photo:hover img { transform: scale(1.07); }
+
+  .link-green { position: relative; }
+  .link-green:hover { text-decoration: none; }
+  .link-green::after {
+    content: ''; position: absolute; left: 0; right: 100%; bottom: -4px; height: 2px;
+    background: currentColor; transition: right .28s cubic-bezier(.2, .8, .3, 1);
+  }
+  .link-green:hover::after { right: 0; }
+
+  .cmp-select { transition: border-color .2s ease, box-shadow .2s ease; }
+  .cmp-select:hover { border-color: var(--green); }
+  .cmp-select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(44, 168, 97, 0.22); }
+  .cmp-card { transition: box-shadow .25s ease, transform .25s ease; }
+  .cmp-card:hover { box-shadow: 0 10px 24px rgba(26, 26, 26, 0.08); }
+
+  .tipo-sep .pill { transition: transform .22s ease, box-shadow .22s ease; }
+  .tipo-sep:hover .pill { transform: translateX(3px); box-shadow: inset 0 0 0 1.5px var(--cs), 0 6px 16px rgba(26, 26, 26, 0.12); }
+
+  .tb-clear:hover { background: rgba(255, 255, 255, 0.18); }
+
+  :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; border-radius: 3px; }
+
+  /* ---------- las tarjetas aparecen al entrar en pantalla ---------- */
+  .reveal { opacity: 0; transform: translateY(14px); }
+  .reveal.visible { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s cubic-bezier(.2, .8, .3, 1); }
+
+  /* ---------- texturas de marca ---------- */
+  .hero-tex { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .hero-tex span {
+    position: absolute; inset: 0; opacity: 0;
+    background-position: right center; background-size: cover; background-repeat: no-repeat;
+    transition: opacity .85s ease;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 26%, #000 72%, #000 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, transparent 26%, #000 72%, #000 100%);
+  }
+  .hero-tex span.on { opacity: 0.32; }
+  .rombo-mini { vertical-align: -4px; margin-right: 9px; }
+
+  /* ---------- sin foto todavía ---------- */
+  .sin-foto { background: var(--cream) !important; }
+  .pronto {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; height: 100%;
+  }
+  .pronto svg { opacity: 0.9; transition: transform .3s cubic-bezier(.2, .8, .3, 1); }
+  .card:hover .pronto svg { transform: translateX(6px); }
+  .pronto-txt {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .detail-photo .pronto-txt { font-size: 13px; }
+  .cmp-card .pronto-txt { font-size: 9px; letter-spacing: 0.1em; }
+
+  /* ---------- la empresa ---------- */
+  .empresa-col { gap: 56px; align-items: flex-start; }
+  .empresa-col > div:first-child { flex: 0 1 380px; }
+  .empresa-col h2 {
+    font-size: clamp(24px, 3.2vw, 34px); line-height: 1.12; margin-top: 10px; letter-spacing: -0.015em;
+  }
+  .empresa-texto { flex: 1 1 380px; }
+  .empresa-texto p { color: #4A4E54; font-size: 16px; line-height: 1.65; margin: 0 0 14px; max-width: 58ch; }
+  .empresa-texto p:last-child { margin-bottom: 0; font-weight: 700; color: var(--ink); }
+
+  /* ---------- la empresa: tarjeta con efectos ---------- */
+  .empresa-col h2::after {
+    content: ''; display: block; height: 4px; width: 60px; border-radius: 2px;
+    background: var(--green); margin-top: 16px;
+    transition: width .4s cubic-bezier(.2, .8, .3, 1);
+  }
+  .empresa-col:hover h2::after { width: 120px; }
+
+  .empresa-texto {
+    position: relative; overflow: hidden;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+    padding: 30px 34px 30px 38px;
+    transition: transform .32s cubic-bezier(.2, .8, .3, 1), box-shadow .32s ease, border-color .32s ease;
+  }
+  .empresa-texto::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg,
+      #2CA861 0 25%, #FFFFFF 25% 50%, #C61510 50% 75%, #2B7FD9 75% 100%);
+    transition: width .32s cubic-bezier(.2, .8, .3, 1);
+  }
+  .empresa-texto:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 34px rgba(26, 26, 26, 0.11);
+    border-color: var(--green);
+  }
+  .empresa-texto:hover::before { width: 10px; }
+
+  .empresa-marca {
+    position: absolute; right: -16px; bottom: -14px; width: 170px; height: 85px;
+    opacity: 0.06; pointer-events: none;
+    transition: opacity .4s ease, transform .5s cubic-bezier(.2, .8, .3, 1);
+  }
+  .empresa-marca polygon { fill: var(--green-dark); }
+  .empresa-marca polygon:last-child { fill: var(--ink); }
+  .empresa-texto:hover .empresa-marca { opacity: 0.14; transform: translateX(-14px); }
+
+  .empresa-texto p { transition: color .25s ease; }
+  .empresa-texto:hover p:last-child { color: var(--green-dark); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } .slide { animation: none; } }
+</style>
+<style>
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+
+<header class="site-head">
+  <div class="wrap">
+    <button class="logo-btn" type="button" aria-label="Ir al inicio"><img class="logo" src="images/logo-jed.png" alt="JED"></button>
+    <nav>
+      <button type="button" data-view="inicio">Inicio</button>
+      <button type="button" data-view="catalogo">Catálogo</button>
+      <button type="button" data-view="comparar">Comparar</button>
+      <button type="button" data-view="contacto">Contacto</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== INICIO ===================== -->
+<div id="view-inicio">
+  <section class="hero" id="hero">
+    <div class="hero-tex" aria-hidden="true">
+      <span class="on" style="background-image:url('images/texturas/chevron-verde.jpg')"></span>
+      <span style="background-image:url('images/texturas/chevron-blanco.jpg')"></span>
+      <span style="background-image:url('images/texturas/chevron-rojo.jpg')"></span>
+      <span style="background-image:url('images/texturas/chevron-azul.jpg')"></span>
+    </div>
+    <div class="wrap">
+      <div class="slides">
+
+        <article class="slide" data-accent="#2CA861" data-on="#1A1A1A">
+          <span class="eyebrow">Catálogo JED</span>
+          <h1>Encontrá el filtro exacto para tu vehículo</h1>
+          <p>Buscá por el código JED, por el código de otra marca, o por marca y modelo del vehículo.</p>
+          <form class="search-row" id="heroForm">
+            <input id="heroInput" type="search" placeholder="Código JED u OEM: J1210, 04E129620A…" aria-label="Buscar por código o equivalencia">
+            <button type="submit">BUSCAR</button>
+          </form>
+        </article>
+
+        <article class="slide" data-accent="#FFFFFF" data-on="#1A1A1A" hidden>
+          <span class="eyebrow">Novedades</span>
+          <h1>25 códigos nuevos en catálogo</h1>
+          <p>Nuevas incorporaciones a las líneas de aire, aceite y combustible. Si tu filtro no estaba el mes pasado, fijate ahora.</p>
+          <button class="slide-cta" type="button" data-goto="catalogo">VER CATÁLOGO</button>
+        </article>
+
+        <article class="slide" data-accent="#C61510" data-on="#FFFFFF" hidden>
+          <span class="eyebrow">Logística</span>
+          <h1>Vos pedís, nosotros manejamos</h1>
+          <p>Enviamos a todo el país. El filtro que necesitás llega a tu taller sin que pierdas la mañana saliendo a buscarlo.</p>
+          <button class="slide-cta" type="button" data-goto="contacto">CÓMO COMPRAR</button>
+        </article>
+
+        <article class="slide" data-accent="#2B7FD9" data-on="#FFFFFF" hidden>
+          <span class="eyebrow">Contacto</span>
+          <h1>¿No encontrás tu filtro?</h1>
+          <p>Pasanos el código o los datos del vehículo por WhatsApp y te confirmamos en el momento cuál corresponde.</p>
+          <button class="slide-cta" type="button" data-goto="contacto">ESCRIBINOS</button>
+        </article>
+
+      </div>
+      <div class="slide-nav">
+        <div class="dots" id="dots" role="tablist" aria-label="Slides"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lines">
+    <div class="wrap">
+      <span class="eyebrow">El catálogo</span>
+      <h2>Líneas de producto</h2>
+      <p class="sub">Cada línea tiene su color. Tocá una para ver sus filtros en el catálogo.</p>
+      <div class="grid-4" id="lines">
+        <button class="line" type="button" data-type="aire" style="--c:#2CA861;--cs:#2CA861;--ci:#126636" aria-pressed="false">
+          <svg width="44" height="22" viewBox="0 0 44 22" aria-hidden="true"><polygon points="12,0 40,0 32,10 4,10" fill="#2CA861"></polygon><polygon points="4,12 32,12 24,22 0,22" fill="#126636"></polygon></svg>
+          <span class="name">Filtros de aire</span>
+          <span class="state">43 códigos · 21 con foto</span>
+        </button>
+        <button class="line" type="button" data-type="aceite" style="--c:#FFFFFF;--cs:#1A1A1A;--ci:#1A1A1A" aria-pressed="false">
+          <svg width="44" height="22" viewBox="0 0 44 22" aria-hidden="true"><polygon points="12,0 40,0 32,10 4,10" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1"></polygon><polygon points="4,12 32,12 24,22 0,22" fill="#DDDFE2" stroke="#1A1A1A" stroke-width="1"></polygon></svg>
+          <span class="name">Filtros de aceite</span>
+          <span class="state">33 códigos · 20 con foto</span>
+        </button>
+        <button class="line" type="button" data-type="combustible" style="--c:#C61510;--cs:#C61510;--ci:#C61510" aria-pressed="false">
+          <svg width="44" height="22" viewBox="0 0 44 22" aria-hidden="true"><polygon points="12,0 40,0 32,10 4,10" fill="#C61510"></polygon><polygon points="4,12 32,12 24,22 0,22" fill="#7E0D0A"></polygon></svg>
+          <span class="name">Filtros de combustible</span>
+          <span class="state">12 códigos</span>
+        </button>
+        <button class="line" type="button" data-type="habitaculo" style="--c:#2B7FD9;--cs:#2B7FD9;--ci:#17497E" aria-pressed="false">
+          <svg width="44" height="22" viewBox="0 0 44 22" aria-hidden="true"><polygon points="12,0 40,0 32,10 4,10" fill="#2B7FD9"></polygon><polygon points="4,12 32,12 24,22 0,22" fill="#17497E"></polygon></svg>
+          <span class="name">Filtros de habitáculo</span>
+          <span class="state">Sin productos cargados</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="plain">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Productos destacados</h2>
+        <button class="link-green" type="button" data-goto="catalogo">Ver todo el catálogo →</button>
+      </div>
+      <div class="grid" id="featured"></div>
+    </div>
+  </section>
+
+  <section class="band-cream" id="empresa">
+    <div class="wrap">
+      <div class="two-col empresa-col">
+        <div>
+          <span class="label-dark">La empresa</span>
+          <h2>Hechos para marcar<br>la diferencia.</h2>
+        </div>
+        <div class="empresa-texto">
+          <svg class="empresa-marca" viewBox="0 0 44 22" aria-hidden="true">
+            <polygon points="12,0 40,0 32,10 4,10"></polygon>
+            <polygon points="4,12 32,12 24,22 0,22"></polygon>
+          </svg>
+          <p>JED nació con una convicción: la calidad, el precio y el servicio pueden ir de la mano. Desde el primer día elegimos escuchar a nuestros clientes y convertir cada experiencia en una mejora concreta.</p>
+          <p>Esa forma de trabajar nos abrió camino en un mercado de marcas consolidadas. Hoy ofrecemos filtros de excelente calidad, precios competitivos y una atención a la altura de cada cliente.</p>
+          <p>Porque la diferencia está en los detalles, en las decisiones y, sobre todo, en la manera de hacer las cosas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band-green">
+    <div class="wrap">
+      <div>
+        <h2>¿No encontrás tu filtro?</h2>
+        <p>Pasanos el código o los datos del vehículo y te confirmamos cuál corresponde.</p>
+      </div>
+      <button class="btn-dark" type="button" data-goto="contacto">ESCRIBINOS</button>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== CATÁLOGO ===================== -->
+<div id="view-catalogo" hidden>
+  <div class="type-banner" id="typeBanner" hidden>
+    <div class="wrap">
+      <span class="tb-name" id="tbName"></span>
+      <button class="tb-clear" type="button" id="tbClear">Ver todo el catálogo</button>
+    </div>
+  </div>
+  <section class="vehicle">
+    <div class="wrap">
+      <div class="field">
+        <label for="marca">Marca</label>
+        <select id="marca"><option value="">Todas</option></select>
+      </div>
+      <div class="field">
+        <label for="modelo">Modelo</label>
+        <select id="modelo" disabled><option value="">Elegí una marca</option></select>
+      </div>
+      <div class="field">
+        <label for="motor">Motor</label>
+        <select id="motor" disabled><option value="">Elegí un modelo</option></select>
+      </div>
+      <div class="field" style="flex:2 1 240px;">
+        <label for="codeInput">Código o equivalencia</label>
+        <input id="codeInput" type="search" placeholder="J1210, 04E129620A…"
+               style="font-family:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);min-width:0;">
+      </div>
+      <button class="btn-dark" id="clearBtn" type="button">Ver todo</button>
+    </div>
+  </section>
+
+  <section class="plain">
+    <div class="wrap">
+      <div id="listView">
+        <div class="results-head">
+          <h2 id="resultsTitle">Catálogo completo</h2>
+          <span class="count" id="count"></span>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="empty" id="empty" hidden>
+          <strong>No encontramos ese código</strong>
+          Revisá que esté bien escrito, o escribinos y te confirmamos cuál corresponde.
+        </div>
+      </div>
+      <div id="detailView" hidden></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== COMPARAR ===================== -->
+<div id="view-comparar" hidden>
+  <section class="plain">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Comparar filtros</h2>
+      </div>
+      <p class="cmp-intro">Elegí dos códigos y mirá sus aplicaciones y equivalencias enfrentadas. Sirve para confirmar si dos filtros cubren el mismo vehículo, o para encontrar el reemplazo de un código de otra marca.</p>
+
+      <div class="cmp-heads">
+        <div class="cmp-head">
+          <label class="cmp-label" for="cmpA">Producto A</label>
+          <select class="cmp-select" id="cmpA"></select>
+          <div class="cmp-card" id="cmpCardA"></div>
+        </div>
+        <div class="cmp-head">
+          <label class="cmp-label" for="cmpB">Producto B</label>
+          <select class="cmp-select" id="cmpB"></select>
+          <div class="cmp-card" id="cmpCardB"></div>
+        </div>
+      </div>
+
+      <div id="cmpVerdict" class="cmp-verdict" hidden></div>
+      <div class="cmp-table-wrap"><table class="cmp-table" id="cmpTable"></table></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== CONTACTO ===================== -->
+<div id="view-contacto" hidden>
+  <section class="plain">
+    <div class="wrap">
+      <div class="two-col">
+        <div>
+          <span class="label-dark">Contacto</span>
+          <h2 style="font-size:30px; margin-top:8px;">Escribinos</h2>
+          <p style="color:#4A4E54; margin-top:12px; max-width:46ch;">¿No encontrás el filtro que buscás o querés confirmar una equivalencia? Mandanos el código o los datos del vehículo y te respondemos con el que corresponde.</p>
+          <svg width="300" height="120" viewBox="0 0 300 120" aria-hidden="true" style="margin-top:20px;">
+            <polygon points="70,5 200,5 130,60 0,60" fill="#2CA861"></polygon>
+            <polygon points="130,65 290,65 220,115 60,115" fill="#126636"></polygon>
+          </svg>
+        </div>
+        <div class="contact-card">
+          <div><div class="k">WhatsApp</div><div class="v"><a href="https://wa.me/5491164408617" target="_blank" rel="noopener">+54 911 6440-8617</a></div></div>
+          <div><div class="k">Mail</div><div class="v"><a href="mailto:juandonato030@gmail.com">juandonato030@gmail.com</a></div></div>
+          <div><div class="k">Instagram</div><div class="v"><a href="https://instagram.com/jed.argentina" target="_blank" rel="noopener">@jed.argentina</a></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <div class="zoom-box">
+    <button class="zoom-close" type="button" id="zoomClose" aria-label="Cerrar">&times;</button>
+    <img id="zoomImg" src="" alt="">
+    <div class="zoom-cap"><span class="code" id="zoomCode"></span><span class="hint">Tocá la foto para acercar · Esc para cerrar</span></div>
+  </div>
+</div>
+
+<section class="prefoot" id="prefoot">
+  <div class="prefoot-photo" aria-hidden="true"></div>
+  <div class="prefoot-shade" aria-hidden="true"></div>
+  <div class="prefoot-tex" aria-hidden="true"></div>
+  <div class="wrap">
+    <img class="prefoot-logo" src="images/logo-jed-big.png" alt="JED">
+    <p class="prefoot-claim">El filtro correcto, al primer intento.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-solo">
+      <div class="f-title">Contacto</div>
+      <p class="f-icons">
+        <a class="icon-link" href="https://wa.me/5491164408617" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.6a8.1 8.1 0 0 1-8.6 8.3 9 9 0 0 1-3.3-.6L3.5 21l1.4-4.3a8 8 0 0 1-1.4-4.6 8.1 8.1 0 0 1 8.6-8.4 8.2 8.2 0 0 1 8.4 7.9Z"></path></svg></a>
+        <a class="icon-link" href="mailto:juandonato030@gmail.com" aria-label="Escribinos por mail" title="Mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="m3.8 7 8.2 5.8L20.2 7"></path></svg></a>
+        <a class="icon-link" href="https://instagram.com/jed.argentina" target="_blank" rel="noopener" aria-label="Seguinos en Instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h3.2L8.8 6h6.4l1.6 2.5H20a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1Z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg></a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const PRODUCTS = [{"code":"J1192","type":"aire","equiv":[{"marca":"Wega","code":"WR-191"},{"marca":"Mann","code":"C 22024"},{"marca":"Wix","code":"WA9763"},{"marca":"Fram","code":"CA 11674"},{"marca":"Mareno","code":"MR381"},{"marca":"Mahle","code":"LX3680"},{"marca":"OEM","code":"1720719"}],"apps":[{"marca":"Ford","modelo":"Ranger","motor":"2.2 / 2.5 / 3.2","desde":2012},{"marca":"Ford","modelo":"Ranger","motor":"3.2 20v","desde":2011}]},{"code":"J1210","type":"aire","equiv":[{"marca":"Wega","code":"FAP-2219"},{"marca":"Mann","code":"C 21014"},{"marca":"Wix","code":"WA10549"},{"marca":"Fram","code":"CA 12104"},{"marca":"Mareno","code":"MR403"},{"marca":"OEM","code":"04E129620A"}],"apps":[{"marca":"Volkswagen","modelo":"Fox","motor":"1.6 MSI","desde":2015},{"marca":"Volkswagen","modelo":"Polo","motor":"1.6","desde":2015},{"marca":"Volkswagen","modelo":"Golf","motor":"1.4 / 2.0","desde":2012},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"T-Cross","motor":"1.6 16v 110cv MSI","desde":2019},{"marca":"Volkswagen","modelo":"Virtus","motor":"1.0 / 1.4 / 1.6","desde":2018},{"marca":"Volkswagen","modelo":"Suran","motor":"1.6","desde":2007}],"photo":1},{"code":"J1803","type":"aire","equiv":[{"marca":"Wega","code":"FAP-2802"},{"marca":"Mann","code":"C 30100"},{"marca":"Wix","code":"WA11149"},{"marca":"Fram","code":"CA 12344"},{"marca":"Mareno","code":"MR432"},{"marca":"OEM","code":"52062431"}],"apps":[{"marca":"Fiat","modelo":"Argo","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Cronos","motor":"1.0 / 1.3 / 1.8","desde":2017}],"photo":1},{"code":"J1820","type":"aire","equiv":[{"marca":"Wega","code":"FAP-2829"},{"marca":"Mann","code":"C 30904"},{"marca":"Wix","code":"WA11150"},{"marca":"Fram","code":"CA 12342"},{"marca":"Mareno","code":"MR431"},{"marca":"OEM","code":"52046268"}],"apps":[{"marca":"Fiat","modelo":"Argo","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Cronos","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.3 / 1.4","desde":2010},{"marca":"Fiat","modelo":"Strada","motor":"1.3 / 1.4","desde":2014},{"marca":"Fiat","modelo":"Pulse","motor":"1.0 / 1.3","desde":2022}]},{"code":"J1828","type":"aire","equiv":[{"marca":"Wega","code":"FAP-2827"},{"marca":"Mann","code":"C 2256"},{"marca":"Wix","code":"WA10038"},{"marca":"Fram","code":"CA 5496"},{"marca":"Mareno","code":"MR152"},{"marca":"Mahle","code":"LX523"},{"marca":"OEM","code":"93183041"}],"apps":[{"marca":"Chevrolet","modelo":"Agile","motor":"1.4","desde":null},{"marca":"Chevrolet","modelo":"Corsa","motor":"1.0 /1.4 / 1.6","desde":null}],"photo":1},{"code":"J1832","type":"aire","equiv":[{"marca":"Wega","code":"FAP-2831"},{"marca":"Mann","code":"C 2585"},{"marca":"Wix","code":"WA48010"},{"marca":"Fram","code":"CA 5627"},{"marca":"Mareno","code":"MR171"},{"marca":"Mahle","code":"LX908"},{"marca":"OEM","code":"46420988"}],"apps":[{"marca":"Fiat","modelo":"Palio","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Siena","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Strada","motor":"1.3 / 1.4","desde":null},{"marca":"Fiat","modelo":"Strada","motor":"1.7d / 1.8","desde":null},{"marca":"Fiat","modelo":"Idea","motor":"1.4 / 1.8","desde":2006}],"photo":1},{"code":"J2234","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3233"},{"marca":"Mann","code":"C23023"},{"marca":"Wix","code":"WA11227"},{"marca":"Fram","code":"CA 12609"},{"marca":"Mareno","code":"MR476"},{"marca":"OEM","code":"26241944"}],"apps":[{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.2 / 1.4","desde":2019},{"marca":"Chevrolet","modelo":"Tracker","motor":"1.0 / 1.2","desde":2020}],"nuevo":1},{"code":"J2260","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3269"},{"marca":"Mann","code":"C 24028/1"},{"marca":"Wix","code":"WA48555"},{"marca":"Fram","code":"CA 11222"},{"marca":"Mareno","code":"MR383"},{"marca":"Mahle","code":"LX1997"},{"marca":"OEM","code":"96950990"}],"apps":[{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.4","desde":2013},{"marca":"Chevrolet","modelo":"Prisma","motor":"1.4","desde":2013},{"marca":"Chevrolet","modelo":"Spin TD LTZ","motor":"- 1.3 D 75cv","desde":2013},{"marca":"Chevrolet","modelo":"Spin","motor":"1.8 8V","desde":2012},{"marca":"Chevrolet","modelo":"Sonic","motor":"1.6L 115cv","desde":2012}]},{"code":"J2273","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3272"},{"marca":"Mann","code":"C2159"},{"marca":"Fram","code":"CA8674"},{"marca":"Mareno","code":"MR274"},{"marca":"OEM","code":"1444G9"}],"apps":[{"marca":"Peugeot","modelo":"206","motor":"1.4","desde":null},{"marca":"Peugeot","modelo":"Partner","motor":"1.9d 97","desde":null}],"nuevo":1},{"code":"J2286","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3285"},{"marca":"Mann","code":"C 27009"},{"marca":"Wix","code":"WA9766"},{"marca":"Fram","code":"CA 11503"},{"marca":"Mareno","code":"MR433"},{"marca":"OEM","code":"04E129620"}],"apps":[{"marca":"Volkswagen","modelo":"Polo","motor":"1.6","desde":2015},{"marca":"Volkswagen","modelo":"Vento","motor":"1.4 /1.9 /2.0 / 2.5","desde":null},{"marca":"Volkswagen","modelo":"Golf","motor":"1.4 / 2.0","desde":2012},{"marca":"Volkswagen","modelo":"Taos 250TSI","motor":"1.4 150cv TSI","desde":2021},{"marca":"Volkswagen","modelo":"Tiguan Allspace","motor":"1.4 TSI 150cv","desde":2018},{"marca":"Volkswagen","modelo":"T-Cross","motor":"1.4 16v 150cv","desde":2019},{"marca":"Volkswagen","modelo":"Virtus","motor":"1.0 / 1.4 / 1.6","desde":2018},{"marca":"Audi","modelo":"A1","motor":"1.0/ 1.4/ 1.5/ 1.8","desde":2016},{"marca":"Audi","modelo":"A3","motor":"2.0 / 1.4","desde":2013},{"marca":"Audi","modelo":"Q2","motor":"1.4 / 2.0","desde":2016},{"marca":"Audi","modelo":"Q3","motor":"1.4","desde":2016}],"photo":1},{"code":"J2287","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3286"},{"marca":"Mann","code":"C 24034"},{"marca":"Wix","code":"WA10513"},{"marca":"Fram","code":"CA 10891"},{"marca":"Mareno","code":"MR383P"},{"marca":"OEM","code":"94757663"}],"apps":[{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.4","desde":2013},{"marca":"Chevrolet","modelo":"Prisma","motor":"1.4","desde":2013},{"marca":"Chevrolet","modelo":"Spin TD LTZ","motor":"- 1.3 D 75cv","desde":2013},{"marca":"Chevrolet","modelo":"Spin","motor":"1.8 8V","desde":2012},{"marca":"Chevrolet","modelo":"Sonic","motor":"1.6L 115cv","desde":2012}]},{"code":"J2288","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3287"},{"marca":"Mann","code":"C 2998/5"},{"marca":"Wix","code":"WA6688"},{"marca":"Fram","code":"CA 9519"},{"marca":"Mareno","code":"MR309"},{"marca":"Mahle","code":"LX977"},{"marca":"OEM","code":"36198620"}],"apps":[{"marca":"Volkswagen","modelo":"Fox","motor":"1.6","desde":2004},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"Caddy","motor":"1.6 / 1.9d","desde":null},{"marca":"Volkswagen","modelo":"Suran","motor":"1.6","desde":2007},{"marca":"Audi","modelo":"A3","motor":"1.6","desde":2004}],"photo":1},{"code":"J2289","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3288"},{"marca":"Mann","code":"C29015"},{"marca":"Wix","code":"WA9744"},{"marca":"Fram","code":"CA11458"},{"marca":"Mareno","code":"MR400"},{"marca":"OEM","code":"04C129620C"}],"apps":[{"marca":"Volkswagen","modelo":"UP","motor":"1.0","desde":null},{"marca":"Volkswagen","modelo":"Virtus","motor":"1.0 / 1.4 / 1.6","desde":2018}],"nuevo":1},{"code":"J2590","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3599"},{"marca":"Mann","code":"C22035"},{"marca":"Wix","code":"WA9811"},{"marca":"Fram","code":"CA12017"},{"marca":"Mareno","code":"MR436"},{"marca":"OEM","code":"04C129620A"}],"apps":[{"marca":"Volkswagen","modelo":"UP","motor":"1.0","desde":null},{"marca":"Volkswagen","modelo":"Nivus","motor":"1.0 Turbo TSI 128cv","desde":2020},{"marca":"Volkswagen","modelo":"T-Cross","motor":"1.0 12v 128cv","desde":2019},{"marca":"Audi","modelo":"A1","motor":"1.0 / 1.4 / 1.5 / 1.8","desde":2016}],"nuevo":1},{"code":"J2603","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3602"},{"marca":"Mann","code":"C 29108"},{"marca":"Wix","code":"WA10537"},{"marca":"Fram","code":"CA 5513N"},{"marca":"Mareno","code":"MR186"},{"marca":"Mahle","code":"LX909"},{"marca":"OEM","code":"928F9601BB"}],"apps":[{"marca":"Volkswagen","modelo":"Gol","motor":"1.0 /1.6 /1.8 /1.9 /2.0","desde":null},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"Caddy","motor":"1.6 / 1.9d","desde":null}]},{"code":"J2611","type":"aire","equiv":[{"marca":"Wega","code":"FAP-3610"},{"marca":"Mann","code":"C2776"},{"marca":"Wix","code":"WA10499"},{"marca":"Fram","code":"CA5929"},{"marca":"Mareno","code":"MR255"},{"marca":"Mahle","code":"LX1712"},{"marca":"OEM","code":"98AB9601"}],"apps":[{"marca":"Ford","modelo":"Focus","motor":"1.6 / 1.8 / 2.0 98","desde":null},{"marca":"Ford","modelo":"Focus","motor":"1.6 / 1.8 / 2.0","desde":2004}],"nuevo":1},{"code":"J3034","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4033"},{"marca":"Mann","code":"C 2496"},{"marca":"Wix","code":"WA10536"},{"marca":"Fram","code":"CA 5325"},{"marca":"Mareno","code":"MR018"},{"marca":"Mahle","code":"LX907"},{"marca":"OEM","code":"7722936"}],"apps":[{"marca":"Fiat","modelo":"Duna","motor":"1,3i 99","desde":null},{"marca":"Fiat","modelo":"Duna1,6 Tipo 92","motor":"—","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.1","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.3d / 1.3 Fire","desde":null},{"marca":"Fiat","modelo":"Fiorino","motor":"1.4 Fire","desde":null}]},{"code":"J3042","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4041"},{"marca":"Mann","code":"C 26135"},{"marca":"Wix","code":"WA10476"},{"marca":"Fram","code":"CA 11952"},{"marca":"Mareno","code":"MR397"},{"marca":"OEM","code":"178010Y040"}],"apps":[{"marca":"Toyota","modelo":"Etios","motor":"1.5","desde":null},{"marca":"Toyota","modelo":"Yaris","motor":"—","desde":null}],"photo":1},{"code":"J3044","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4043"},{"marca":"Mann","code":"C 34007"},{"marca":"Wix","code":"WA9782"},{"marca":"Fram","code":"CA 11493"},{"marca":"Mareno","code":"MR409"},{"marca":"Mahle","code":"LX4163"},{"marca":"OEM","code":"178010Y020"}],"apps":[{"marca":"Toyota","modelo":"Etios","motor":"1.5","desde":null},{"marca":"Toyota","modelo":"Yaris","motor":"—","desde":null}],"photo":1},{"code":"J3046","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4045"},{"marca":"Mann","code":"C 37153"},{"marca":"Wix","code":"WA42472"},{"marca":"Fram","code":"CA 5827"},{"marca":"Mareno","code":"MR253"},{"marca":"Mahle","code":"LX684"},{"marca":"OEM","code":"1J0129620"}],"apps":[{"marca":"Volkswagen","modelo":"Bora","motor":"1.8t","desde":null},{"marca":"Volkswagen","modelo":"Bora","motor":"2.0","desde":null},{"marca":"Volkswagen","modelo":"Bora","motor":"1.9tdi","desde":null},{"marca":"Volkswagen","modelo":"Golf","motor":"1.6 / 1.8 / 2.0","desde":2000},{"marca":"Audi","modelo":"A3","motor":"1.6 / 1.8","desde":1999}],"photo":1},{"code":"J3047","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4046"},{"marca":"Mann","code":"C 31003/1"},{"marca":"Wix","code":"WA48110"},{"marca":"Fram","code":"CA 10696"},{"marca":"Mareno","code":"MR355"},{"marca":"OEM","code":"2H0129620"}],"apps":[{"marca":"Volkswagen","modelo":"Amarok","motor":"2.0 / 3.0","desde":null}],"photo":1},{"code":"J3055/1","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4054/2"},{"marca":"Mann","code":"C 4371"},{"marca":"Wix","code":"WA48960"},{"marca":"Fram","code":"CA 10237"},{"marca":"Mareno","code":"MR326"},{"marca":"OEM","code":"1444FE"}],"apps":[{"marca":"Peugeot","modelo":"207","motor":"1.4 / 1.6","desde":2008},{"marca":"Peugeot","modelo":"208","motor":"1.5","desde":2013},{"marca":"Peugeot","modelo":"307","motor":"1.6 16v 110cv","desde":2001},{"marca":"Peugeot","modelo":"307","motor":"2.0 16v 138cv","desde":2001},{"marca":"Citroen","modelo":"C4","motor":"1.6","desde":2008}],"photo":1},{"code":"J3055/2","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4054/3"},{"marca":"Mann","code":"C 4371/1"},{"marca":"Wix","code":"WA9503"},{"marca":"Fram","code":"CA 10788"},{"marca":"OEM","code":"1444VK"}],"apps":[{"marca":"Peugeot","modelo":"207","motor":"1.4 / 1.6","desde":2008},{"marca":"Peugeot","modelo":"208","motor":"1.5","desde":2013},{"marca":"Peugeot","modelo":"307","motor":"1.6 16v 110cv","desde":2001},{"marca":"Peugeot","modelo":"307","motor":"2.0 16v 138cv","desde":2001},{"marca":"Citroen","modelo":"C4","motor":"1.6","desde":2008}],"photo":1},{"code":"J3056","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4055"},{"marca":"Mann","code":"C 3087"},{"marca":"Wix","code":"WA6738"},{"marca":"Fram","code":"CA 9572"},{"marca":"Mareno","code":"MR291"},{"marca":"Mahle","code":"LX1282"},{"marca":"OEM","code":"1147681"}],"apps":[{"marca":"Ford","modelo":"Fiesta","motor":"1.4 / 1.6","desde":2002},{"marca":"Peugeot","modelo":"207","motor":"1.4 / 1.6","desde":2008},{"marca":"Citroen","modelo":"C3","motor":"1.4 / 1.4 HDI","desde":2003},{"marca":"Citroen","modelo":"Xsara","motor":"1.4 HDI 70cv","desde":2003}],"photo":1},{"code":"J3071","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4070"},{"marca":"Mann","code":"C36007KIT"},{"marca":"Wix","code":"WA9799"},{"marca":"Fram","code":"CA 12021"},{"marca":"Mareno","code":"MR446"},{"marca":"OEM","code":"9678335980"}],"apps":[{"marca":"Peugeot","modelo":"208","motor":"1.2 / 1.6","desde":2020}],"nuevo":1},{"code":"J3812","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4811"},{"marca":"Mann","code":"C24026"},{"marca":"Wix","code":"WA9819"},{"marca":"Fram","code":"CA11288"},{"marca":"Mareno","code":"MR494"},{"marca":"OEM","code":"9809643880"}],"apps":[{"marca":"Peugeot","modelo":"208","motor":"1.2 / 1.6","desde":2020},{"marca":"Citroen","modelo":"C3","motor":"1.2","desde":2016}],"nuevo":1},{"code":"J3866","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4865"},{"marca":"Mann","code":"C2192"},{"marca":"Wix","code":"WA6540"},{"marca":"Fram","code":"CA8675"},{"marca":"Mareno","code":"MR237"},{"marca":"OEM","code":"1444H0"}],"apps":[{"marca":"Peugeot","modelo":"206","motor":"1.6 / 1.8 / 1.9 / 2.0","desde":null},{"marca":"Peugeot","modelo":"Partner","motor":"1.9d 97","desde":null},{"marca":"Citroen","modelo":"Xsara","motor":"1.9d 8v 68cv 98 01","desde":null},{"marca":"Citroen","modelo":"Xsara","motor":"1.9d 8v 71cv","desde":2003},{"marca":"Citroen","modelo":"Xsara","motor":"2.0 16v 137cv","desde":2001},{"marca":"Citroen","modelo":"Xsara Picasso","motor":"1.6i","desde":2000},{"marca":"Citroen","modelo":"Xsara Picasso","motor":"2.0 16v","desde":2001}],"nuevo":1},{"code":"J3873","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4872"},{"marca":"Mann","code":"C 3875"},{"marca":"Wix","code":"WA9425"},{"marca":"Fram","code":"CA 10314"},{"marca":"Mareno","code":"MR296"},{"marca":"Mahle","code":"LX1849"},{"marca":"OEM","code":"1654600QAS"}],"apps":[{"marca":"Renault","modelo":"Clio","motor":"1.2 / 1.5","desde":2005},{"marca":"Renault","modelo":"Clio","motor":"1.5","desde":2012},{"marca":"Renault","modelo":"Clio","motor":"1.0 / 1.2 / 1.6","desde":2012},{"marca":"Renault","modelo":"Logan","motor":"1.5dci","desde":2007},{"marca":"Renault","modelo":"Sandero 2008","motor":"—","desde":null},{"marca":"Renault","modelo":"Kangoo","motor":"1.4 / 1.5 / 1.6 98","desde":null},{"marca":"Renault","modelo":"Kangoo","motor":"1.5 / 1.6","desde":2009},{"marca":"Renault","modelo":"Symbol","motor":"1.5 dCi 65cv","desde":2009}],"photo":1},{"code":"J3874","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4873"},{"marca":"Mann","code":"C 3485/1"},{"marca":"Wix","code":"WA10440"},{"marca":"Fram","code":"CA 9315"},{"marca":"Mareno","code":"MR313"},{"marca":"Mahle","code":"LX1257"},{"marca":"OEM","code":"1444EF"}],"apps":[{"marca":"Peugeot","modelo":"208","motor":"1.6","desde":2013},{"marca":"Peugeot","modelo":"2008","motor":"1.6","desde":null},{"marca":"Peugeot","modelo":"308","motor":"1.6","desde":2012},{"marca":"Peugeot","modelo":"Partner","motor":"1.4 / 1.6 / 1.8","desde":2001},{"marca":"Peugeot","modelo":"Partner","motor":"1.4 / 1.6","desde":2011},{"marca":"Citroen","modelo":"Berlingo","motor":"1.4 98","desde":null},{"marca":"Citroen","modelo":"Berlingo","motor":"1.6","desde":2003},{"marca":"Citroen","modelo":"Berlingo","motor":"1.4 / 1.6","desde":2010},{"marca":"Citroen","modelo":"C3","motor":"1.4 / 1.4 HDI","desde":2003},{"marca":"Citroen","modelo":"C3","motor":"1.6","desde":2003},{"marca":"Citroen","modelo":"C3","motor":"1.5 / 1.6","desde":2012},{"marca":"Citroen","modelo":"C3","motor":"1.0","desde":2015},{"marca":"Citroen","modelo":"Xsara Picasso","motor":"1.6i 16v 110cv","desde":2007}]},{"code":"J3893","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4892"},{"marca":"Mann","code":"C 3585"},{"marca":"Wix","code":"WA9663"},{"marca":"Fram","code":"CA 11072"},{"marca":"Mareno","code":"MR373"},{"marca":"OEM","code":"1444TV"}],"apps":[{"marca":"Peugeot","modelo":"207","motor":"1.6 / 1.6 HDI","desde":2010},{"marca":"Peugeot","modelo":"208","motor":"1.6 HDI","desde":2013},{"marca":"Peugeot","modelo":"308","motor":"1.6","desde":2012},{"marca":"Peugeot","modelo":"4008","motor":"1.6 /1.8 / 2.0","desde":null},{"marca":"Peugeot","modelo":"408","motor":"1.6 / 2.0","desde":null},{"marca":"Peugeot","modelo":"Partner","motor":"1.4 / 1.6","desde":2011},{"marca":"Citroen","modelo":"Berlingo","motor":"1.4 / 1.6","desde":2010},{"marca":"Citroen","modelo":"C3","motor":"1.0","desde":2015},{"marca":"Citroen","modelo":"C4","motor":"1.6","desde":2008},{"marca":"Citroen","modelo":"Grand Picasso","motor":"1.6 / 2.0","desde":2013}]},{"code":"J3896","type":"aire","equiv":[{"marca":"Wega","code":"FAP-4895"},{"marca":"Mann","code":"C37012"},{"marca":"Wix","code":"WA11768"},{"marca":"Fram","code":"CA12561"},{"marca":"Mareno","code":"MR479"},{"marca":"OEM","code":"9835123980"}],"apps":[{"marca":"Peugeot","modelo":"208","motor":"1.2 / 1.6","desde":2020}],"nuevo":1},{"code":"J6008","type":"aire","equiv":[{"marca":"Wega","code":"FAP-7007"},{"marca":"Mann","code":"C 2295/2"},{"marca":"Wix","code":"WA48045"},{"marca":"Fram","code":"CA 9410"},{"marca":"Mareno","code":"MR334"},{"marca":"Mahle","code":"LX998"},{"marca":"OEM","code":"5Z0129620"}],"apps":[{"marca":"Volkswagen","modelo":"Fox","motor":"1.6","desde":2008},{"marca":"Volkswagen","modelo":"Gol Trend 2008","motor":"—","desde":null},{"marca":"Volkswagen","modelo":"Voyage","motor":"1.6","desde":2008},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"Suran","motor":"1.6","desde":2007}]},{"code":"J6010","type":"aire","equiv":[{"marca":"Wega","code":"FAP-7019"},{"marca":"Mann","code":"C22031"},{"marca":"Fram","code":"CA 12430"},{"marca":"Mareno","code":"MR430"},{"marca":"OEM","code":"2066235"}],"apps":[{"marca":"Ford","modelo":"Ecosport","motor":"1.5 / 2.0","desde":2017},{"marca":"Ford","modelo":"Ka","motor":"1.5","desde":2016}],"nuevo":1},{"code":"J6022","type":"aire","equiv":[{"marca":"Wega","code":"FAP-7021"},{"marca":"Mann","code":"C 34001"},{"marca":"Wix","code":"WA11767"},{"marca":"OEM","code":"2562972"}],"apps":[{"marca":"Ford","modelo":"Ranger","motor":"2.2 / 3.2","desde":2021},{"marca":"Ford","modelo":"Ranger","motor":"2.0 / 3.0","desde":2023}],"photo":1},{"code":"J8004","type":"aire","equiv":[{"marca":"Wega","code":"FAP-9003"},{"marca":"Mann","code":"C 4151"},{"marca":"Wix","code":"WA10512"},{"marca":"Fram","code":"CA 9511"},{"marca":"Mareno","code":"MR297"},{"marca":"Mahle","code":"LX1597"},{"marca":"OEM","code":"2N1U9601BD"}],"apps":[{"marca":"Ford","modelo":"Ecosport","motor":"1.6 Zetec","desde":2003},{"marca":"Ford","modelo":"Fiesta","motor":"1.4 / 1.6","desde":2002},{"marca":"Ford","modelo":"Ka","motor":"1.0 / 1.6","desde":2008},{"marca":"Citroen","modelo":"Berlingo","motor":"1.4","desde":2003}],"photo":1},{"code":"J8055","type":"aire","equiv":[{"marca":"Wega","code":"FAP-9054"},{"marca":"Mann","code":"C 29003"},{"marca":"Wix","code":"WA10506"},{"marca":"Fram","code":"CA 11104"},{"marca":"Mareno","code":"MR362"},{"marca":"OEM","code":"51854598"}],"apps":[{"marca":"Fiat","modelo":"Mobi","motor":"1.0","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.3 / 1.4","desde":2010},{"marca":"Fiat","modelo":"Fiorino","motor":"1.4","desde":2014},{"marca":"Fiat","modelo":"Strada","motor":"1.3 / 1.4","desde":2014}]},{"code":"J8274","type":"aire","equiv":[{"marca":"Wega","code":"FAP-9273"},{"marca":"Mann","code":"C 1858/1"},{"marca":"Wix","code":"WA48900"},{"marca":"Fram","code":"CA 8964"},{"marca":"Mareno","code":"MR263"},{"marca":"Mahle","code":"LX773"},{"marca":"OEM","code":"225241229"}],"apps":[{"marca":"Renault","modelo":"Clio","motor":"1.6","desde":2000},{"marca":"Renault","modelo":"Duster","motor":"1.3 / 1.6 / 2.0","desde":null},{"marca":"Renault","modelo":"Logan","motor":"1.6","desde":2007},{"marca":"Renault","modelo":"Megane","motor":"1.6 97","desde":null},{"marca":"Renault","modelo":"Megane","motor":"1.9 97","desde":null},{"marca":"Renault","modelo":"Megane 2005","motor":"—","desde":null},{"marca":"Renault","modelo":"Sandero 2008","motor":"—","desde":null},{"marca":"Renault","modelo":"Sandero 2012","motor":"—","desde":null},{"marca":"Renault","modelo":"Kangoo","motor":"1.6","desde":2003},{"marca":"Renault","modelo":"Kangoo","motor":"1.5 / 1.6","desde":2009},{"marca":"Renault","modelo":"Captur Life","motor":"1,6 16v 115cv","desde":2017},{"marca":"Renault","modelo":"Scenic","motor":"1.6 / 2.0 16v 110cv","desde":2001},{"marca":"Renault","modelo":"Symbol","motor":"1.6 16v 105cv","desde":2009},{"marca":"Renault","modelo":"Oroch","motor":"1.6 16v 110cv","desde":2015}],"photo":1},{"code":"J8290","type":"aire","equiv":[{"marca":"Wega","code":"FAP-9299"},{"marca":"Mann","code":"C 27030"},{"marca":"Wix","code":"WA9830"},{"marca":"Fram","code":"CA 11654"},{"marca":"Mareno","code":"MR406"},{"marca":"Mahle","code":"LX3542"},{"marca":"OEM","code":"165467674R"}],"apps":[{"marca":"Renault","modelo":"Clio","motor":"1.0 / 1.2 / 1.6","desde":2012},{"marca":"Renault","modelo":"Duster","motor":"1.3 / 1.6 / 2.0","desde":null},{"marca":"Renault","modelo":"Logan","motor":"1.6","desde":2017},{"marca":"Renault","modelo":"Sandero 2012","motor":"—","desde":null},{"marca":"Renault","modelo":"Kangoo","motor":"1.5 / 1.6","desde":2016},{"marca":"Renault","modelo":"Captur Intense","motor":"Zen - 2.0 16v 143cv","desde":2017},{"marca":"Renault","modelo":"Oroch","motor":"2.0 16v 148cv","desde":2015}],"photo":1},{"code":"J8297","type":"aire","equiv":[{"marca":"Wega","code":"FAP-9296"},{"marca":"Mann","code":"C 17006"},{"marca":"Fram","code":"CA 10997"},{"marca":"Mareno","code":"MR371"},{"marca":"Mahle","code":"LX2633"},{"marca":"OEM","code":"1729860"}],"apps":[{"marca":"Ford","modelo":"Ecosport","motor":"1.5 / 1.6 / 2.0","desde":2012},{"marca":"Ford","modelo":"Ka","motor":"1.5","desde":2016}]},{"code":"J9274","type":"aire","equiv":[{"marca":"Wega","code":"JFA-0273"},{"marca":"Mann","code":"C 2513"},{"marca":"OEM","code":"1780121030"}],"apps":[{"marca":"Toyota","modelo":"Yaris","motor":"—","desde":null}],"photo":1},{"code":"J9283","type":"aire","equiv":[{"marca":"Wega","code":"JFA-0282"},{"marca":"Mann","code":"C 33017"},{"marca":"Wix","code":"WA10550"},{"marca":"Fram","code":"CA 12055"},{"marca":"Mareno","code":"MR404"},{"marca":"Mahle","code":"LX4368"},{"marca":"OEM","code":"178010L040"}],"apps":[{"marca":"Toyota","modelo":"Hilux","motor":"2.4 / 2.8","desde":2015}],"photo":1},{"code":"J9286","type":"aire","equiv":[{"marca":"Wega","code":"JFA-0285"},{"marca":"Mann","code":"C 24005"},{"marca":"Wix","code":"WA11070A"},{"marca":"Fram","code":"CA 10190"},{"marca":"Mareno","code":"MR396J"},{"marca":"OEM","code":"1780121050"}],"apps":[{"marca":"Toyota","modelo":"Corolla","motor":"1.3 / 1.6","desde":2004},{"marca":"Toyota","modelo":"Corolla","motor":"1.8 / 2.0 98","desde":null},{"marca":"Toyota","modelo":"Corolla","motor":"1.8 / 2.0","desde":2004},{"marca":"Toyota","modelo":"Corolla 2016","motor":"—","desde":null}],"photo":1},{"code":"J9293","type":"aire","equiv":[{"marca":"Wega","code":"JFA-0292/2"},{"marca":"Mann","code":"C 23107"},{"marca":"Wix","code":"WA9644"},{"marca":"Fram","code":"CA 10112"},{"marca":"Mareno","code":"MR316"},{"marca":"Mahle","code":"LX2125"},{"marca":"OEM","code":"178010C010"}],"apps":[{"marca":"Toyota","modelo":"Hilux","motor":"2.5 / 2.8 / 3.0 99","desde":null},{"marca":"Toyota","modelo":"Hilux","motor":"2.5 / 3.0","desde":2012},{"marca":"Toyota","modelo":"Hilux","motor":"2.7","desde":2013}]},{"code":"E0209","type":"aceite","equiv":[{"marca":"Wega","code":"WO-200"},{"marca":"Mann","code":"W 75/3"},{"marca":"Wix","code":"WL54145"},{"marca":"Fram","code":"PH 5796"},{"marca":"Mareno","code":"ML241"}],"apps":[]},{"code":"E1051","type":"aceite","equiv":[{"marca":"Wega","code":"WO-205"},{"marca":"Mann","code":"W 66"},{"marca":"Wix","code":"WL10467A"},{"marca":"Fram","code":"PH 9928"},{"marca":"Mahle","code":"OC309"}],"apps":[],"photo":1},{"code":"E1408","type":"aceite","equiv":[{"marca":"Wega","code":"WO-410"},{"marca":"Mann","code":"W 79"},{"marca":"Wix","code":"WL7427"},{"marca":"Fram","code":"PH 5511"},{"marca":"Mareno","code":"ML019"},{"marca":"Mahle","code":"OC704"}],"apps":[],"photo":1},{"code":"E2102","type":"aceite","equiv":[{"marca":"Wega","code":"WO-120"},{"marca":"Mann","code":"W 610/82"},{"marca":"Wix","code":"WL10489A"},{"marca":"Fram","code":"PH 5949"},{"marca":"Mareno","code":"ML320"},{"marca":"Mahle","code":"OC196"}],"apps":[]},{"code":"E2110","type":"aceite","equiv":[{"marca":"Wega","code":"WO-121"},{"marca":"Mann","code":"W 7003"},{"marca":"Wix","code":"WL10482"},{"marca":"Fram","code":"PH 5752"},{"marca":"Mareno","code":"ML339"},{"marca":"Mahle","code":"OC259"}],"apps":[]},{"code":"E2190","type":"aceite","equiv":[{"marca":"Wega","code":"WO-139"},{"marca":"Mann","code":"W7056"},{"marca":"Fram","code":"PH10060"},{"marca":"Mareno","code":"ML346"}],"apps":[],"nuevo":1},{"code":"E2404","type":"aceite","equiv":[{"marca":"Wega","code":"WO-420"},{"marca":"Mann","code":"W 1126/4"},{"marca":"Fram","code":"PH 2956"},{"marca":"Mareno","code":"ML018"}],"apps":[],"photo":1},{"code":"E2520","type":"aceite","equiv":[{"marca":"Wega","code":"WO-152"},{"marca":"Mann","code":"W 712/73"},{"marca":"Fram","code":"PH 3614"}],"apps":[],"photo":1},{"code":"E2530","type":"aceite","equiv":[{"marca":"Wega","code":"WO-153"},{"marca":"Mann","code":"W 7008"},{"marca":"Wix","code":"WL10157"},{"marca":"Fram","code":"PH3614"}],"apps":[],"nuevo":1},{"code":"E2560","type":"aceite","equiv":[{"marca":"Wega","code":"WO-156"},{"marca":"Mann","code":"W 7008"},{"marca":"Wix","code":"WL7459"},{"marca":"Fram","code":"PH 10044"},{"marca":"Mahle","code":"OC1608"}],"apps":[]},{"code":"E3105","type":"aceite","equiv":[{"marca":"Wega","code":"WO-130"},{"marca":"Mann","code":"W 712/22"},{"marca":"Wix","code":"WL7129"},{"marca":"Fram","code":"PH 4722"},{"marca":"Mareno","code":"ML302"}],"apps":[]},{"code":"E3406","type":"aceite","equiv":[{"marca":"Wega","code":"WO-430"},{"marca":"Mann","code":"W 910/1"},{"marca":"Wix","code":"WL51335"},{"marca":"Fram","code":"PH 2830"},{"marca":"Mareno","code":"ML013"},{"marca":"Mahle","code":"OC985"}],"apps":[],"photo":1},{"code":"E4203","type":"aceite","equiv":[{"marca":"Wega","code":"WO-240"},{"marca":"Mann","code":"W 915/9"},{"marca":"Wix","code":"WL10166"},{"marca":"Fram","code":"PH 927A"}],"apps":[],"photo":1},{"code":"E4302","type":"aceite","equiv":[{"marca":"Wega","code":"WO-340"},{"marca":"Mann","code":"W 712/52"},{"marca":"Wix","code":"WL7203"},{"marca":"Fram","code":"PH 5548"},{"marca":"Mareno","code":"ML326"}],"apps":[]},{"code":"E4364","type":"aceite","equiv":[{"marca":"Wega","code":"WO-346"},{"marca":"Mann","code":"W 712/95"},{"marca":"Wix","code":"WL10479"},{"marca":"Fram","code":"PH 11457"},{"marca":"Mareno","code":"ML340"}],"apps":[],"photo":1},{"code":"E6107","type":"aceite","equiv":[{"marca":"Wega","code":"WO-160"},{"marca":"Mann","code":"W 712/8"},{"marca":"Wix","code":"WL7086"},{"marca":"Fram","code":"PH 9599"},{"marca":"Mareno","code":"ML247"},{"marca":"Mahle","code":"OC100"}],"apps":[]},{"code":"E7103","type":"aceite","equiv":[{"marca":"Wega","code":"WO-170"},{"marca":"Mann","code":"W 713/16"},{"marca":"Fram","code":"PH 4558"},{"marca":"Mareno","code":"ML029"},{"marca":"Mahle","code":"OC66"}],"apps":[],"photo":1},{"code":"E7301","type":"aceite","equiv":[{"marca":"Wega","code":"WO-370"},{"marca":"Mann","code":"W 719/5"},{"marca":"Wix","code":"WL7070"},{"marca":"Fram","code":"PH 2870A"},{"marca":"Mareno","code":"ML246"},{"marca":"Mahle","code":"OC318"}],"apps":[]},{"code":"E8106","type":"aceite","equiv":[{"marca":"Wega","code":"WO-180"},{"marca":"Mann","code":"W 719/27"},{"marca":"Wix","code":"WL7074"},{"marca":"Fram","code":"PH 5803"},{"marca":"Mareno","code":"ML323"},{"marca":"Mahle","code":"OC266"}],"apps":[]},{"code":"E9305","type":"aceite","equiv":[{"marca":"Wega","code":"WO-390"},{"marca":"Mann","code":"W 713/4"},{"marca":"Wix","code":"WL7324"},{"marca":"Fram","code":"PH 4482"},{"marca":"Mareno","code":"ML245"},{"marca":"Mahle","code":"OC501"}],"apps":[],"photo":1},{"code":"EA0708","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-700"},{"marca":"Mann","code":"HU 612x"},{"marca":"Wix","code":"WL7299"},{"marca":"Fram","code":"CH 9443"},{"marca":"Mareno","code":"EM1009"},{"marca":"Mahle","code":"OX193D"}],"apps":[],"photo":1},{"code":"EA1107","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-110"},{"marca":"Mann","code":"HU 716/2x"},{"marca":"Wix","code":"WL7305"},{"marca":"Fram","code":"CH 9657"},{"marca":"Mareno","code":"EM1014"}],"apps":[],"photo":1},{"code":"EA1709","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-710"},{"marca":"Mann","code":"HU 711/51x"},{"marca":"Wix","code":"WL7413"},{"marca":"Fram","code":"CH 9973"},{"marca":"Mareno","code":"EM1012"}],"apps":[],"photo":1},{"code":"EA1921","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-912"},{"marca":"Mann","code":"HU 816/2x"},{"marca":"Wix","code":"WL57303"},{"marca":"Fram","code":"CH 9584"},{"marca":"Mareno","code":"EM1022"},{"marca":"Mahle","code":"OX175D"}],"apps":[],"photo":1},{"code":"EA2310","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-131"},{"marca":"Mann","code":"HU 7002z"},{"marca":"Wix","code":"WL7508"},{"marca":"Fram","code":"CH 11673"},{"marca":"Mareno","code":"EM1020"},{"marca":"Mahle","code":"OX1991D"}],"apps":[],"photo":1},{"code":"EA5593","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-459"},{"marca":"Mann","code":"HU10002Z"},{"marca":"Fram","code":"CH11442"},{"marca":"Mareno","code":"EM1045"},{"marca":"Mahle","code":"OX968D"}],"apps":[],"nuevo":1},{"code":"EA7805","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-680"},{"marca":"Mann","code":"HU 7008z"},{"marca":"Wix","code":"WL7476"},{"marca":"Fram","code":"CH 9463A"},{"marca":"Mareno","code":"EM1019"},{"marca":"Mahle","code":"OX388D"}],"apps":[],"photo":1},{"code":"EA7815","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-681"},{"marca":"Mann","code":"HU 7012z"},{"marca":"Wix","code":"WL7535"},{"marca":"Fram","code":"CH 12176"},{"marca":"Mareno","code":"EM1040"},{"marca":"Mahle","code":"OX368D"}],"apps":[],"photo":1},{"code":"EA9037","type":"aceite","equiv":[{"marca":"Wega","code":"WOE-803"},{"marca":"Mann","code":"HU 6006z"},{"marca":"Wix","code":"WL10463A"},{"marca":"Fram","code":"CH 10358"},{"marca":"Mareno","code":"EM1023"}],"apps":[],"photo":1},{"code":"EF1079","type":"aceite","equiv":[{"marca":"Wega","code":"JFO-0197"},{"marca":"Mann","code":"W 67/1"},{"marca":"Wix","code":"WL10466A"},{"marca":"Fram","code":"PH 6607"},{"marca":"Mareno","code":"ML332"},{"marca":"Mahle","code":"OX192D"}],"apps":[]},{"code":"EF2001","type":"aceite","equiv":[{"marca":"Wega","code":"JFO-0210"},{"marca":"Mann","code":"W 68/1"},{"marca":"Fram","code":"PH 4967"},{"marca":"Mareno","code":"ML328"}],"apps":[],"photo":1},{"code":"EF2011","type":"aceite","equiv":[{"marca":"Wega","code":"JFO-0211"},{"marca":"Mann","code":"W 711/80"},{"marca":"Fram","code":"PH 3614"},{"marca":"Mareno","code":"ML304"}],"apps":[],"photo":1},{"code":"EF2090","type":"aceite","equiv":[{"marca":"Wega","code":"JFO-0209"},{"marca":"Mann","code":"W 6020"},{"marca":"Wix","code":"WL10470A"},{"marca":"Fram","code":"PH 11447"},{"marca":"Mareno","code":"ML335"}],"apps":[],"photo":1},{"code":"F2100","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1101C"},{"marca":"Mann","code":"WK612/1"},{"marca":"Fram","code":"G 5857"},{"marca":"Mareno","code":"MCI215"},{"marca":"Mahle","code":"KL72"},{"marca":"OEM","code":"156781"}],"apps":[{"marca":"Peugeot","modelo":"206","motor":"1.4 / 1.6 / 2.0","desde":null},{"marca":"Peugeot","modelo":"207","motor":"1.4 / 1.6 / 1.6 hdi / 1.9d / 2.0d","desde":2008},{"marca":"Peugeot","modelo":"208","motor":"1.5 / 1.6 / 1.6 hdi / 1.6 thp","desde":2013},{"marca":"Peugeot","modelo":"2008","motor":"1.6","desde":null},{"marca":"Peugeot","modelo":"3008","motor":"1.6 / 2.0","desde":null},{"marca":"Peugeot","modelo":"307","motor":"1.6 / 2.0 16v","desde":2001},{"marca":"Peugeot","modelo":"308","motor":"1.6 / 16 thp / 2.0","desde":2012},{"marca":"Peugeot","modelo":"408","motor":"1.6 / 2.0","desde":null},{"marca":"Peugeot","modelo":"Partner","motor":"1.4 /1.6 / 1.8","desde":2001},{"marca":"Renault","modelo":"Clio","motor":"1.2","desde":2003},{"marca":"Renault","modelo":"Clio","motor":"1.6","desde":2000},{"marca":"Renault","modelo":"Clio","motor":"1.0 / 1.2 / 1.6","desde":2012},{"marca":"Renault","modelo":"Duster","motor":"1.3 / 1.6 / 2.0","desde":null},{"marca":"Renault","modelo":"Fluence","motor":"1.6 / 2.0","desde":null},{"marca":"Renault","modelo":"Kwid","motor":"1.0","desde":null},{"marca":"Renault","modelo":"Megane","motor":"1.6 / 2.0 97","desde":null},{"marca":"Renault","modelo":"Sandero 2008","motor":"—","desde":null},{"marca":"Renault","modelo":"Captur Life","motor":"1,6 16v 115cv","desde":2017}],"nuevo":1},{"code":"F2110","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1110S"},{"marca":"Mann","code":"WK512"},{"marca":"Wix","code":"WF8101"},{"marca":"Fram","code":"G5540"},{"marca":"Mareno","code":"MCI200"},{"marca":"Mahle","code":"KL38"},{"marca":"OEM","code":"90353562"}],"apps":[{"marca":"Chevrolet","modelo":"Agile","motor":"1.4","desde":null},{"marca":"Chevrolet","modelo":"Astra","motor":"1.7 / 1.8 / 2.0","desde":null},{"marca":"Chevrolet","modelo":"Celta","motor":"1.4","desde":null},{"marca":"Chevrolet","modelo":"Corsa","motor":"1.0 / 1.4 / 1.6","desde":null},{"marca":"Chevrolet","modelo":"Meriva","motor":"1.8","desde":null},{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.4","desde":2013},{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.2 / 1.4","desde":2019},{"marca":"Chevrolet","modelo":"Tracker","motor":"1.0 / 1.2","desde":2020},{"marca":"Chevrolet","modelo":"S10","motor":"2.2 98","desde":null},{"marca":"Chevrolet","modelo":"Spin","motor":"1.8 8V","desde":2012},{"marca":"Fiat","modelo":"Palio","motor":"1.0 al 1.8","desde":null},{"marca":"Citroen","modelo":"C3","motor":"1.5 / 1.6","desde":2012},{"marca":"Audi","modelo":"A3","motor":"1.6 FSI","desde":2003},{"marca":"Audi","modelo":"A3","motor":"2.0","desde":2004}],"nuevo":1},{"code":"F2111","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1111S"},{"marca":"Mann","code":"WK 613/1"},{"marca":"Wix","code":"WF8032"},{"marca":"Fram","code":"G 5312"},{"marca":"OEM","code":"7585348"}],"apps":[{"marca":"Fiat","modelo":"Tipo","motor":"1.6 EFI 94","desde":null},{"marca":"Fiat","modelo":"Tipo","motor":"1.6 8v / 16v 90","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.1","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.3d / 1.3 Fire","desde":null}],"nuevo":1},{"code":"F2260","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1661"},{"marca":"Mann","code":"WK58/6"},{"marca":"Wix","code":"WF10843"},{"marca":"Fram","code":"G12783"},{"marca":"Mareno","code":"MCI221"},{"marca":"Mahle","code":"KL1179/2"},{"marca":"OEM","code":"51977028"}],"apps":[{"marca":"Fiat","modelo":"Cronos","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Mobi","motor":"1.0","desde":null},{"marca":"Fiat","modelo":"Toro","motor":"1.3 / 1.8 / 2.0","desde":null}],"nuevo":1},{"code":"F2609","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1600"},{"marca":"Mann","code":"WK510"},{"marca":"Wix","code":"WF10307"},{"marca":"Fram","code":"G7729"},{"marca":"Mareno","code":"MCI204"},{"marca":"Mahle","code":"KL167"},{"marca":"OEM","code":"46416684"}],"apps":[{"marca":"Fiat","modelo":"Cronos","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Duna","motor":"1.3i 99","desde":null},{"marca":"Fiat","modelo":"Palio","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.1","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.3 / 1.4","desde":2010},{"marca":"Fiat","modelo":"Strada","motor":"1.3 / 1.4","desde":null},{"marca":"Fiat","modelo":"500","motor":"1.4","desde":2009}],"nuevo":1},{"code":"F2619","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1610"},{"marca":"Mann","code":"WK513"},{"marca":"Wix","code":"WF10309"},{"marca":"Fram","code":"G5493"},{"marca":"Mareno","code":"MCI217"},{"marca":"Mahle","code":"KL238"},{"marca":"OEM","code":"50015864"}],"apps":[{"marca":"Fiat","modelo":"Tipo","motor":"1.6 EFI 94","desde":null},{"marca":"Fiat","modelo":"Tipo","motor":"1.6 8v / 16v 90","desde":null},{"marca":"Fiat","modelo":"Tipo","motor":"1.6 94","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.1","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.3d/ 1.3 Fire","desde":null},{"marca":"Fiat","modelo":"Fiorino","motor":"1.4 Fire","desde":null}],"nuevo":1},{"code":"F2629","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1620"},{"marca":"Mann","code":"WK613/3"},{"marca":"Wix","code":"WF36010"},{"marca":"Fram","code":"G5738"},{"marca":"Mareno","code":"MCI212"},{"marca":"Mahle","code":"KL237"},{"marca":"OEM","code":"377133511A"}],"apps":[{"marca":"Volkswagen","modelo":"Fox","motor":"1.6","desde":2004},{"marca":"Volkswagen","modelo":"—","motor":"1.6","desde":2008},{"marca":"Volkswagen","modelo":"Gol","motor":"1.0 / 1.6 / 1.8 / 1.9 / 2.0","desde":null},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"Caddy","motor":"1.6 / 1.9d","desde":null},{"marca":"Volkswagen","modelo":"Suran","motor":"1.6","desde":2007},{"marca":"Renault","modelo":"Sandero 2012","motor":"—","desde":null}],"nuevo":1},{"code":"F2639","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1630"},{"marca":"Mann","code":"WK 58/3"},{"marca":"Wix","code":"WF8034"},{"marca":"Fram","code":"G10230"},{"marca":"Mareno","code":"MCI201"},{"marca":"Mahle","code":"KL583"},{"marca":"OEM","code":"7700845973"}],"apps":[{"marca":"Volkswagen","modelo":"Fox","motor":"1.6 msi","desde":2015},{"marca":"Volkswagen","modelo":"Fox","motor":"1.6","desde":2010},{"marca":"Volkswagen","modelo":"Gol Trend","motor":"Voyage","desde":null},{"marca":"Volkswagen","modelo":"UP","motor":"1.0","desde":null},{"marca":"Volkswagen","modelo":"Vento","motor":"1.4 / 1.9 / 2.0 / 2.5","desde":null},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6","desde":null},{"marca":"Volkswagen","modelo":"Suran","motor":"1.6","desde":2007},{"marca":"Fiat","modelo":"Uno","motor":"1.0 / 1.3 / 1.4","desde":2010},{"marca":"Peugeot","modelo":"206","motor":"1.4 / 1.6 / 2.0","desde":null},{"marca":"Peugeot","modelo":"207","motor":"1.4 / 1.6","desde":2008},{"marca":"Peugeot","modelo":"207","motor":"1.6 / 1.6 HDI","desde":2010},{"marca":"Peugeot","modelo":"207","motor":"1.9d / 2.0d","desde":null},{"marca":"Peugeot","modelo":"208","motor":"1.5","desde":2013},{"marca":"Peugeot","modelo":"208","motor":"1.6","desde":2013},{"marca":"Peugeot","modelo":"208","motor":"1.6 hdi","desde":2013},{"marca":"Peugeot","modelo":"208","motor":"1.6 thp","desde":2013}],"nuevo":1},{"code":"F2669","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1660"},{"marca":"Mann","code":"WK58"},{"marca":"Wix","code":"WF10295"},{"marca":"Fram","code":"G5995"},{"marca":"Mareno","code":"MCI200"},{"marca":"Mahle","code":"KL582"},{"marca":"OEM","code":"25161062"}],"apps":[{"marca":"Chevrolet","modelo":"Agile","motor":"1.4","desde":null},{"marca":"Chevrolet","modelo":"Astra","motor":"1.7 / 1.8 / 2.0","desde":null},{"marca":"Chevrolet","modelo":"Celta","motor":"1.4","desde":null},{"marca":"Chevrolet","modelo":"Corsa","motor":"1.0 / 1.4 / 1.6","desde":null},{"marca":"Chevrolet","modelo":"Meriva","motor":"1.8","desde":null},{"marca":"Chevrolet","modelo":"Onix","motor":"1.0 / 1.2 / 1.4","desde":2013},{"marca":"Chevrolet","modelo":"Prisma","motor":"1.4","desde":2011},{"marca":"Chevrolet","modelo":"Tracker","motor":"1.0 / 1.2","desde":2020},{"marca":"Chevrolet","modelo":"S10","motor":"2.2 98","desde":null},{"marca":"Chevrolet","modelo":"Spin","motor":"1.8 8V","desde":2012},{"marca":"Fiat","modelo":"Argo","motor":"1.0 / 1.3 / 1.8","desde":2017},{"marca":"Fiat","modelo":"Palio","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Punto","motor":"—","desde":null},{"marca":"Fiat","modelo":"Siena","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Fiorino","motor":"1.4","desde":2014},{"marca":"Fiat","modelo":"Strada","motor":"1.3 / 1.4 / 1.7d / 1.8 / 2.0","desde":null},{"marca":"Fiat","modelo":"Toro","motor":"1.3 / 1.8 / 2.0","desde":null},{"marca":"Fiat","modelo":"Pulse","motor":"1.0 / 1.3","desde":2022},{"marca":"Fiat","modelo":"Idea","motor":"1.4 / 1.8","desde":2006},{"marca":"Toyota","modelo":"Corolla 2016","motor":"—","desde":null},{"marca":"Honda","modelo":"Civic","motor":"2.0","desde":2016},{"marca":"Honda","modelo":"HRV","motor":"1.5 172cv","desde":2019}],"nuevo":1},{"code":"F2693","type":"combustible","equiv":[{"marca":"Wega","code":"FCI-1693"},{"marca":"OEM","code":"92076590"}],"apps":[{"marca":"Chevrolet","modelo":"Spin","motor":"1.8 8V","desde":2012},{"marca":"Ford","modelo":"Ecosport","motor":"1.5 / 1.6 / 2.0","desde":2012},{"marca":"Ford","modelo":"Fiesta","motor":"1.6","desde":2010},{"marca":"Ford","modelo":"Focus","motor":"1.6 / 2.0","desde":2013},{"marca":"Ford","modelo":"Ka","motor":"1.5","desde":2016}],"nuevo":1},{"code":"F3059","type":"combustible","equiv":[{"marca":"Wega","code":"FCD-2058"},{"marca":"Mann","code":"WK842"},{"marca":"Wix","code":"WF33472"},{"marca":"Fram","code":"P3522"},{"marca":"Mareno","code":"MC143"},{"marca":"Mahle","code":"KC186"},{"marca":"OEM","code":"068127177B"}],"apps":[{"marca":"Volkswagen","modelo":"Gol","motor":"1.0 / 1.6 / 1.8 / 1.9 / 2.0","desde":null},{"marca":"Volkswagen","modelo":"Saveiro","motor":"1.6d/1.9d","desde":null},{"marca":"Chevrolet","modelo":"Astra","motor":"1.7 / 1.8 / 2.0","desde":null},{"marca":"Chevrolet","modelo":"S10","motor":"2.5 96","desde":null}],"nuevo":1},{"code":"F3060","type":"combustible","equiv":[{"marca":"Wega","code":"FCD-2058B"},{"marca":"Mann","code":"WK842/2"},{"marca":"Wix","code":"WF8042"},{"marca":"Fram","code":"P1129"},{"marca":"Mareno","code":"MC143"},{"marca":"Mahle","code":"KC18"},{"marca":"OEM","code":"99419058"}],"apps":[{"marca":"Volkswagen","modelo":"Gol","motor":"1.0 / 1.6 / 1.8 / 1.9 / 2.0","desde":null},{"marca":"Ford","modelo":"Ranger","motor":"2.5 td Maxion 98","desde":null},{"marca":"Ford","modelo":"Ranger","motor":"2.5 td Maxion","desde":2000},{"marca":"Ford","modelo":"Ranger","motor":"2.5 TD Maxion HS","desde":2000},{"marca":"Ford","modelo":"F100 HSD TD","motor":"XL / XLT - 2.5TD Maxion HS","desde":1996},{"marca":"Ford","modelo":"F100","motor":"3.9 99","desde":null},{"marca":"Ford","modelo":"F100 TD Intercooler","motor":"- Cummins TD-14 3.9","desde":null},{"marca":"Ford","modelo":"F100 XL","motor":"4.9i Maxion","desde":1996},{"marca":"Fiat","modelo":"Duna","motor":"1.3 89","desde":null},{"marca":"Fiat","modelo":"Duna","motor":"1.7 DIESEL 97","desde":null},{"marca":"Fiat","modelo":"Palio","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Siena","motor":"1.0 al 1.8","desde":null},{"marca":"Fiat","modelo":"Tipo","motor":"1.7 / 1.9 DIESEL","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.3d / 1.3 fire","desde":null},{"marca":"Fiat","modelo":"Uno","motor":"1.7d / 1.9d","desde":null},{"marca":"Fiat","modelo":"Ducato","motor":"1.9d 8V 96 99","desde":null},{"marca":"Fiat","modelo":"Ducato","motor":"2.5 / 2.8","desde":2006},{"marca":"Fiat","modelo":"Fiorino","motor":"1.3d 89","desde":null},{"marca":"Fiat","modelo":"Fiorino","motor":"1.7d","desde":null},{"marca":"Fiat","modelo":"Strada","motor":"1.7d / 1.8","desde":null}],"nuevo":1}];
+
+  const VIEWS = ['inicio', 'catalogo', 'comparar', 'contacto'];
+  const norm = s => (s || '').toString().toUpperCase().replace(/[\s\-.]/g, '');
+
+  // cada línea de filtro tiene su color: el de marca para los fondos (hue),
+  // una versión legible sobre fondo claro (ink) y el texto que va encima (on)
+  // hue = el color de la línea (puntito del listado)
+  // strip = fondo de la banda de la ficha; on = texto sobre esa banda; ink = texto sobre fondo claro
+  // el aceite es blanco: sobre fondo claro no se ve, así que su banda va en negro con letra blanca
+  const TYPES = {
+    aire:         { hue: '#2CA861', strip: '#2CA861', ink: '#126636', on: '#1A1A1A', label: 'Filtro de aire' },
+    aceite:       { hue: '#FFFFFF', strip: '#1A1A1A', ink: '#1A1A1A', on: '#FFFFFF', label: 'Filtro de aceite' },
+    combustible:  { hue: '#C61510', strip: '#C61510', ink: '#C61510', on: '#FFFFFF', label: 'Filtro de combustible' },
+    habitaculo:   { hue: '#2B7FD9', strip: '#2B7FD9', ink: '#17497E', on: '#1A1A1A', label: 'Filtro de habitáculo' }
+  };
+
+  function typeKeyOf(p) { return p.type && TYPES[p.type] ? p.type : null; }
+  function typeLabel(p) { const k = typeKeyOf(p); return k ? TYPES[k].label : 'Tipo a confirmar'; }
+  const photoSrc = code => (window.PHOTOS && PHOTOS[code]) || ('images/productos/' + code.replace(/\//g, '-') + '.jpg?v=3');
+  const $ = id => document.getElementById(id);
+
+  const grid = $('grid'), empty = $('empty'), countEl = $('count'), titleEl = $('resultsTitle');
+  const listView = $('listView'), detailView = $('detailView');
+  const marcaSel = $('marca'), modeloSel = $('modelo'), motorSel = $('motor'), codeInput = $('codeInput');
+
+  function showView(name) {
+    if (!VIEWS.includes(name)) name = 'inicio';
+    VIEWS.forEach(v => { $('view-' + v).hidden = (v !== name); });
+    document.querySelectorAll('nav button').forEach(b => {
+      if (b.dataset.view === name) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+    // En la vista previa de Claude la página corre dentro de un iframe de otro dominio
+    // y el navegador rechaza escribir el hash. En el sitio publicado sí funciona.
+    try {
+      if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
+    } catch (e) { /* sin hash en la URL; la navegación funciona igual */ }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  document.querySelectorAll('nav button').forEach(b =>
+    b.addEventListener('click', () => showView(b.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => showView(b.dataset.goto)));
+
+  function appSummary(p) {
+    if (!p.apps.length) return null;
+    const marcas = [...new Set(p.apps.map(a => a.marca))];
+    return marcas.join(', ') + ' · ' + p.apps.length + (p.apps.length === 1 ? ' aplicación' : ' aplicaciones');
+  }
+
+  function typeDot(p) {
+    const k = typeKeyOf(p);
+    if (!k) return '';
+    return '<span class="dot-type" style="background:' + TYPES[k].hue + '"></span>';
+  }
+
+  // ---------- cartel para los productos que todavía no tienen foto ----------
+  function proximamente(p, chico) {
+    const T = TYPES[typeKeyOf(p)];
+    const c = T ? T.hue : '#DED8D3';
+    const borde = T ? T.strip : '#A7A29E';
+    const alto = chico ? 26 : 40;
+    return '<span class="pronto">' +
+      '<svg width="' + (alto * 2) + '" height="' + alto + '" viewBox="0 0 44 22" aria-hidden="true">' +
+        '<polygon points="12,0 40,0 32,10 4,10" fill="' + c + '" stroke="' + borde + '" stroke-width="1"></polygon>' +
+        '<polygon points="4,12 32,12 24,22 0,22" fill="' + borde + '"></polygon>' +
+      '</svg>' +
+      '<span class="pronto-txt">Próximamente</span>' +
+    '</span>';
+  }
+
+  function cardFor(p) {
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.type = 'button';
+    const T = TYPES[typeKeyOf(p)];
+    if (T) {
+      card.style.setProperty('--c', T.strip);
+      card.style.setProperty('--ci', T.ink);
+    }
+    const summary = appSummary(p);
+    card.innerHTML =
+      (p.photo ? '<span class="thumb"><img src="' + photoSrc(p.code) + '" alt="' + p.code + '" loading="lazy"></span>'
+               : '<span class="thumb sin-foto">' + proximamente(p, true) + '</span>') +
+      '<span class="body">' +
+        '<span class="code">' + p.code + '</span>' +
+        '<span class="meta">' + typeDot(p) + typeLabel(p) + '</span>' +
+        (summary ? '<span class="apps">' + summary + '</span>'
+                 : '<span class="pending">Aplicaciones pendientes</span>') +
+      '</span>';
+    card.addEventListener('click', () => { showView('catalogo'); showDetail(p); });
+    return card;
+  }
+
+  const EMPTY_DEFAULT =
+    '<strong>No encontramos ese código</strong>' +
+    'Revisá que esté bien escrito, o escribinos y te confirmamos cuál corresponde.';
+
+  const ORDEN_TIPOS = ['aire', 'aceite', 'combustible', 'habitaculo'];
+
+  function separador(key, cuantos) {
+    const T = TYPES[key];
+    const sep = document.createElement('div');
+    sep.className = 'tipo-sep';
+    sep.style.setProperty('--c', T.hue);
+    sep.style.setProperty('--cs', T.strip);
+    sep.style.setProperty('--ci', T.ink);
+    sep.innerHTML =
+      '<span class="pill">' +
+        '<svg width="26" height="13" viewBox="0 0 44 22" aria-hidden="true">' +
+          '<polygon points="12,0 40,0 32,10 4,10" fill="var(--c)" stroke="var(--cs)" stroke-width="1.5"></polygon>' +
+          '<polygon points="4,12 32,12 24,22 0,22" fill="var(--cs)"></polygon>' +
+        '</svg>' + T.label.replace('Filtro de', 'Filtros de') +
+      '</span>' +
+      '<span class="cuenta">' + cuantos + (cuantos === 1 ? ' código' : ' códigos') + '</span>' +
+      '<span class="regla"></span>';
+    return sep;
+  }
+
+  function render(list, title, emptyHtml) {
+    titleEl.textContent = title;
+    countEl.textContent = list.length + (list.length === 1 ? ' producto' : ' productos');
+    grid.innerHTML = '';
+    empty.innerHTML = emptyHtml || EMPTY_DEFAULT;
+    empty.hidden = list.length > 0;
+
+    // el catálogo completo se muestra partido por línea; cualquier búsqueda o
+    // filtro va en una sola grilla
+    const agrupar = list.length === PRODUCTS.length && list.length > 0;
+    grid.className = agrupar ? 'grid-wrap' : 'grid';
+
+    if (!agrupar) {
+      list.forEach(p => grid.appendChild(cardFor(p)));
+      animarEntrada(grid);
+      return;
+    }
+
+    ORDEN_TIPOS.forEach(key => {
+      const delTipo = list.filter(p => typeKeyOf(p) === key);
+      if (!delTipo.length) return;
+      grid.appendChild(separador(key, delTipo.length));
+      const caja = document.createElement('div');
+      caja.className = 'grid';
+      delTipo.forEach(p => caja.appendChild(cardFor(p)));
+      grid.appendChild(caja);
+    });
+
+    animarEntrada(grid);
+    const sueltos = list.filter(p => !typeKeyOf(p));
+    if (sueltos.length) {
+      const caja = document.createElement('div');
+      caja.className = 'grid';
+      caja.style.marginTop = '24px';
+      sueltos.forEach(p => caja.appendChild(cardFor(p)));
+      grid.appendChild(caja);
+    }
+  }
+
+  function clearTypeAccent() {
+    $('view-catalogo').classList.remove('type-accent');
+    $('typeBanner').hidden = true;
+    document.querySelectorAll('.line').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  }
+
+  const yearText = a => a.desde ? ' — ' + a.desde + ' →' : '';
+
+  function showDetail(p) {
+    const apps = p.apps.length
+      ? '<ul class="app-list">' + p.apps.map(a =>
+          '<li>' + a.marca + ' ' + a.modelo + ' ' + a.motor + yearText(a) + '</li>').join('') + '</ul>'
+      : '<p class="note" style="margin-top:0">Todavía no cargamos las aplicaciones de este producto.</p>';
+    const equiv = p.equiv.length
+      ? '<div class="equiv-grid">' + p.equiv.map(e =>
+          '<div class="equiv"><div class="c">' + e.code + '</div><div class="b">' + e.marca + '</div></div>').join('') + '</div>'
+      : '<p class="note" style="margin-top:0">Sin equivalencias cargadas.</p>';
+
+    const k = typeKeyOf(p);
+    const T = k ? TYPES[k] : { hue: '#DED8D3', strip: '#DED8D3', ink: '#6B6F76', on: '#1A1A1A', label: 'Tipo a confirmar' };
+    const style = 'style="--d-strip:' + T.strip + ';--d-ink:' + T.ink + ';--d-on:' + T.on + '"';
+
+    detailView.innerHTML =
+      '<button class="back" type="button" id="backBtn">← Volver al catálogo</button>' +
+      '<div class="detail" ' + style + '>' +
+        '<div class="detail-strip">' + T.label.toUpperCase() + '</div>' +
+        '<div class="detail-top">' +
+          (p.photo ? '<div class="detail-photo has-photo zoomable"><img src="' + photoSrc(p.code) + '" alt="Filtro JED ' + p.code + '" data-zoom="' + p.code + '"></div>'
+                    : '<div class="detail-photo sin-foto">' + proximamente(p, false) + '</div>') +
+          '<div class="detail-info">' +
+            '<h2>' + p.code + '</h2>' +
+            '<div class="type">' + typeLabel(p) + (p.nuevo ? ' · <strong>Nuevo</strong>' : '') + '</div>' +
+            '<div class="block-label">Aplicaciones</div>' + apps +
+            '<div class="block-label">Equivalencias</div>' + equiv +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    listView.hidden = true;
+    detailView.hidden = false;
+    $('backBtn').addEventListener('click', backToList);
+  }
+
+  function backToList() { detailView.hidden = true; listView.hidden = false; }
+
+  function searchCode(raw) {
+    const q = norm(raw);
+    backToList();
+    clearTypeAccent();
+    showView('catalogo');
+    if (!q) { render(PRODUCTS, 'Catálogo completo'); return; }
+    const hits = PRODUCTS.filter(p =>
+      norm(p.code).includes(q) || p.equiv.some(x => norm(x.code).includes(q)));
+    render(hits, 'Resultados para “' + raw.trim() + '”');
+  }
+
+  $('heroForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('heroInput').value;
+    codeInput.value = v;
+    searchCode(v);
+  });
+  codeInput.addEventListener('input', () => searchCode(codeInput.value));
+
+  // --- búsqueda por vehículo ---
+  const allApps = PRODUCTS.flatMap(p => p.apps.map(a => ({ ...a, code: p.code })));
+
+  function fill(sel, values, placeholder) {
+    sel.innerHTML = '<option value="">' + placeholder + '</option>' +
+      values.map(v => '<option value="' + v + '">' + v + '</option>').join('');
+    sel.disabled = values.length === 0;
+  }
+
+  fill(marcaSel, [...new Set(allApps.map(a => a.marca))].sort(), 'Todas');
+
+  marcaSel.addEventListener('change', () => {
+    const m = marcaSel.value;
+    fill(modeloSel, m ? [...new Set(allApps.filter(a => a.marca === m).map(a => a.modelo))].sort() : [], m ? 'Todos' : 'Elegí una marca');
+    fill(motorSel, [], 'Elegí un modelo');
+    applyVehicle();
+  });
+  modeloSel.addEventListener('change', () => {
+    const m = marcaSel.value, mo = modeloSel.value;
+    fill(motorSel, mo ? [...new Set(allApps.filter(a => a.marca === m && a.modelo === mo).map(a => a.motor))].sort() : [], mo ? 'Todos' : 'Elegí un modelo');
+    applyVehicle();
+  });
+  motorSel.addEventListener('change', applyVehicle);
+
+  function applyVehicle() {
+    const m = marcaSel.value, mo = modeloSel.value, mt = motorSel.value;
+    backToList();
+    clearTypeAccent();
+    if (!m) { render(PRODUCTS, 'Catálogo completo'); return; }
+    const codes = new Set(allApps
+      .filter(a => a.marca === m && (!mo || a.modelo === mo) && (!mt || a.motor === mt))
+      .map(a => a.code));
+    render(PRODUCTS.filter(p => codes.has(p.code)), 'Filtros para ' + [m, mo, mt].filter(Boolean).join(' '));
+  }
+
+  $('tbClear').addEventListener('click', () => $('clearBtn').click());
+  $('clearBtn').addEventListener('click', () => {
+    codeInput.value = ''; $('heroInput').value = ''; marcaSel.value = '';
+    fill(modeloSel, [], 'Elegí una marca');
+    fill(motorSel, [], 'Elegí un modelo');
+    backToList();
+    render(PRODUCTS, 'Catálogo completo');
+  });
+
+  // destacados en la home
+  ['J1210', 'J1803', 'J2260', 'J2603'].forEach(c => {
+    const p = PRODUCTS.find(x => x.code === c);
+    if (p) $('featured').appendChild(cardFor(p));
+  });
+
+  // --- slides del hero ---
+  const slides = [...document.querySelectorAll('.slide')];
+  const dotsBox = $('dots');
+  const heroEl = $('hero');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let slideIx = 0, slideTimer = null;
+
+  slides.forEach((s, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot';
+    d.type = 'button';
+    d.setAttribute('role', 'tab');
+    d.setAttribute('aria-label', 'Slide ' + (i + 1));
+    d.addEventListener('click', () => { goSlide(i); restartSlides(); });
+    dotsBox.appendChild(d);
+  });
+
+  const capasTex = [...document.querySelectorAll('.hero-tex span')];
+
+  function goSlide(i) {
+    slideIx = (i + slides.length) % slides.length;
+    slides.forEach((s, k) => { s.hidden = (k !== slideIx); });
+    heroEl.style.setProperty('--slide-accent', slides[slideIx].dataset.accent || '#2CA861');
+    heroEl.style.setProperty('--slide-on', slides[slideIx].dataset.on || '#1A1A1A');
+    capasTex.forEach((c, k) => c.classList.toggle('on', k === slideIx));
+    [...dotsBox.children].forEach((d, k) =>
+      d.setAttribute('aria-current', k === slideIx ? 'true' : 'false'));
+  }
+  function stopSlides() { if (slideTimer) { clearInterval(slideTimer); slideTimer = null; } }
+  function restartSlides() { stopSlides(); if (!reduce) slideTimer = setInterval(() => goSlide(slideIx + 1), 5000); }
+
+  // el logo del header vuelve al inicio
+  document.querySelector('.logo-btn').addEventListener('click', () => showView('inicio'));
+
+  // los chevrones siguen el mouse, apenas, para que la página respire
+  function parallax(container, target, strength) {
+    if (reduce || !container || !target) return;
+    container.addEventListener('mousemove', e => {
+      const r = container.getBoundingClientRect();
+      const dx = (e.clientX - r.left) / r.width - 0.5;
+      const dy = (e.clientY - r.top) / r.height - 0.5;
+      target.style.transform = 'translate(' + (-dx * strength).toFixed(1) + 'px,' + (-dy * strength * 0.5).toFixed(1) + 'px)';
+    });
+    container.addEventListener('mouseleave', () => { target.style.transform = 'translate(0, 0)'; });
+  }
+  parallax(heroEl, heroEl.querySelector('.chevrons'), 28);
+  const pfEl = $('prefoot');
+  parallax(pfEl, pfEl.querySelector('.prefoot-tex'), 26);
+  parallax(pfEl, pfEl.querySelector('.prefoot-photo'), -20);
+
+  heroEl.addEventListener('mouseenter', stopSlides);
+  heroEl.addEventListener('mouseleave', restartSlides);
+  heroEl.addEventListener('focusin', stopSlides);
+
+  document.querySelectorAll('[data-scroll]').forEach(b => b.addEventListener('click', () => {
+    showView('inicio');
+    const target = document.getElementById(b.dataset.scroll);
+    if (target) target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }));
+
+  // --- líneas de producto por color ---
+  const TYPE_COLOR = { aire: '#2CA861', aceite: '#FFFFFF', combustible: '#C61510', habitaculo: '#2B7FD9' };
+  // texto que contrasta sobre cada color: el rojo necesita blanco, los otros negro
+  const TYPE_ON = { aire: '#1A1A1A', aceite: '#1A1A1A', combustible: '#FFFFFF', habitaculo: '#1A1A1A' };
+  const TYPE_LABEL = { aire: 'Filtros de aire', aceite: 'Filtros de aceite', combustible: 'Filtros de combustible', habitaculo: 'Filtros de habitáculo' };
+  const TYPE_MATCH = { aire: 'aire', aceite: 'aceite', combustible: 'combustible', habitaculo: 'habitácul' };
+
+  document.querySelectorAll('.line').forEach(btn => btn.addEventListener('click', () => {
+    const t = btn.dataset.type;
+    document.querySelectorAll('.line').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    const view = $('view-catalogo');
+    // el blanco del aceite no se lee sobre fondo claro: ahí el acento es el negro de marca
+    view.style.setProperty('--accent-type', t === 'aceite' ? '#1A1A1A' : TYPE_COLOR[t]);
+    view.classList.add('type-accent');
+    // la sección entera se tiñe del color de la línea
+    const banner = $('typeBanner');
+    banner.style.setProperty('--tb-bg', TYPE_COLOR[t]);
+    banner.style.setProperty('--tb-fg', TYPE_ON[t]);
+    $('tbName').textContent = TYPE_LABEL[t];
+    banner.hidden = false;
+    codeInput.value = ''; $('heroInput').value = ''; marcaSel.value = '';
+    fill(modeloSel, [], 'Elegí una marca');
+    fill(motorSel, [], 'Elegí un modelo');
+    backToList();
+    showView('catalogo');
+    const hits = PRODUCTS.filter(p => p.type === t);
+    render(hits, TYPE_LABEL[t],
+      '<strong>Todavía no hay productos en esta línea</strong>' +
+      'Se cargan cuando JED mande los códigos de ' + TYPE_LABEL[t].toLowerCase() + ' en la planilla.');
+  }));
+
+  // ---------- comparador ----------
+  const cmpA = $('cmpA'), cmpB = $('cmpB');
+
+  function llenarSelect(sel, preseleccion) {
+    const grupos = { aire: [], aceite: [], combustible: [], habitaculo: [] };
+    PRODUCTS.forEach(p => { if (grupos[p.type]) grupos[p.type].push(p); });
+    let html = '<option value="">Elegí un código…</option>';
+    Object.keys(grupos).forEach(k => {
+      if (!grupos[k].length) return;
+      html += '<optgroup label="' + TYPES[k].label + '">';
+      grupos[k].forEach(p => {
+        html += '<option value="' + p.code + '">' + p.code + (p.nuevo ? ' · nuevo' : '') + '</option>';
+      });
+      html += '</optgroup>';
+    });
+    sel.innerHTML = html;
+    if (preseleccion) sel.value = preseleccion;
+  }
+
+  function tarjetaComparar(cont, p) {
+    if (!p) {
+      cont.style.removeProperty('--c-hue');
+      cont.style.removeProperty('--c-ink');
+      cont.innerHTML = '<span class="cmp-empty">Todavía no elegiste un producto.</span>';
+      return;
+    }
+    const k = typeKeyOf(p);
+    const T = k ? TYPES[k] : null;
+    cont.style.setProperty('--c-hue', T ? T.strip : 'var(--line)');
+    cont.style.setProperty('--c-ink', T ? T.ink : 'var(--ink)');
+    const foto = p.photo
+      ? '<span class="ph-box zoomable"><img src="' + photoSrc(p.code) + '" alt="' + p.code + '" data-zoom="' + p.code + '"></span>'
+      : '<span class="ph-box sin-foto">' + proximamente(p, true) + '</span>';
+    cont.innerHTML = foto +
+      '<span><span class="cmp-code">' + p.code + '</span>' +
+      '<span class="cmp-type">' + typeDot(p) + typeLabel(p) + (p.nuevo ? ' · Nuevo' : '') + '</span></span>';
+  }
+
+  const claveApp = a => (a.marca + ' ' + a.modelo).toLowerCase();
+  const MARCAS_EQ = ['OEM', 'Wega', 'Mann', 'Wix', 'Fram', 'Mareno', 'Mahle'];
+
+  function listaApps(p, compartidas) {
+    if (!p) return '<span class="none">—</span>';
+    if (!p.apps.length) return '<span class="none">Sin aplicaciones cargadas</span>';
+    return '<ul>' + p.apps.map(a => {
+      const txt = a.marca + ' ' + a.modelo + ' ' + a.motor + (a.desde ? ' — ' + a.desde + ' →' : '');
+      const cls = compartidas.has(claveApp(a)) ? ' class="match"' : '';
+      return '<li' + cls + '>' + txt + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  function equivDe(p, marca) {
+    if (!p) return null;
+    const e = p.equiv.filter(x => x.marca === marca).map(x => x.code);
+    return e.length ? e.join(', ') : null;
+  }
+
+  function compararAhora() {
+    const a = PRODUCTS.find(p => p.code === cmpA.value) || null;
+    const b = PRODUCTS.find(p => p.code === cmpB.value) || null;
+    tarjetaComparar($('cmpCardA'), a);
+    tarjetaComparar($('cmpCardB'), b);
+
+    const tabla = $('cmpTable');
+    const veredicto = $('cmpVerdict');
+    if (!a || !b) {
+      tabla.innerHTML = '';
+      veredicto.hidden = true;
+      return;
+    }
+
+    // vehículos que comparten los dos
+    const setB = new Set(b.apps.map(claveApp));
+    const compartidas = new Set(a.apps.map(claveApp).filter(k => setB.has(k)));
+
+    veredicto.hidden = false;
+    if (compartidas.size) {
+      veredicto.className = 'cmp-verdict';
+      veredicto.innerHTML = '<strong>Coinciden en ' + compartidas.size +
+        (compartidas.size === 1 ? ' vehículo' : ' vehículos') + '.</strong> ' +
+        'Abajo aparecen marcados en verde.';
+    } else if (!a.apps.length || !b.apps.length) {
+      veredicto.className = 'cmp-verdict no';
+      veredicto.innerHTML = 'No se pueden cruzar los vehículos: a uno de los dos le faltan las aplicaciones.';
+    } else {
+      veredicto.className = 'cmp-verdict no';
+      veredicto.innerHTML = '<strong>No comparten ningún vehículo.</strong> Son filtros para autos distintos.';
+    }
+
+    const filas = [];
+    filas.push(['Tipo',
+      (typeDot(a) + typeLabel(a)),
+      (typeDot(b) + typeLabel(b)),
+      a.type === b.type]);
+    filas.push(['Aplicaciones',
+      a.apps.length ? a.apps.length + (a.apps.length === 1 ? ' vehículo' : ' vehículos') : '<span class="none">sin datos</span>',
+      b.apps.length ? b.apps.length + (b.apps.length === 1 ? ' vehículo' : ' vehículos') : '<span class="none">sin datos</span>',
+      false]);
+    filas.push(['Vehículos', listaApps(a, compartidas), listaApps(b, compartidas), false]);
+    MARCAS_EQ.forEach(m => {
+      const ea = equivDe(a, m), eb = equivDe(b, m);
+      if (!ea && !eb) return;
+      filas.push([m === 'OEM' ? 'Código OEM' : 'Equivalencia ' + m,
+        ea || '<span class="none">—</span>',
+        eb || '<span class="none">—</span>',
+        !!ea && ea === eb]);
+    });
+    filas.push(['Foto',
+      a.photo ? 'Sí' : '<span class="none">pendiente</span>',
+      b.photo ? 'Sí' : '<span class="none">pendiente</span>',
+      false]);
+
+    tabla.innerHTML =
+      '<tr><th></th><th style="width:auto">' + a.code + '</th><th style="width:auto">' + b.code + '</th></tr>' +
+      filas.map(f =>
+        '<tr><th>' + f[0] + '</th>' +
+        '<td' + (f[3] ? ' class="same"' : '') + '>' + f[1] + '</td>' +
+        '<td' + (f[3] ? ' class="same"' : '') + '>' + f[2] + '</td></tr>').join('');
+  }
+
+  llenarSelect(cmpA);
+  llenarSelect(cmpB);
+  cmpA.addEventListener('change', compararAhora);
+  cmpB.addEventListener('change', compararAhora);
+  compararAhora();
+
+  // ---------- zoom de la foto ----------
+  const zoom = $('zoom'), zoomImg = $('zoomImg'), zoomCode = $('zoomCode');
+
+  function abrirZoom(src, code) {
+    zoomImg.src = src;
+    zoomImg.alt = 'Filtro JED ' + code;
+    zoomImg.classList.remove('mas');
+    zoomCode.textContent = code;
+    zoom.setAttribute('open', '');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function cerrarZoom() {
+    zoom.removeAttribute('open');
+    zoomImg.classList.remove('mas');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('click', e => {
+    const img = e.target.closest('[data-zoom]');
+    if (img) { abrirZoom(img.src, img.dataset.zoom); return; }
+    if (e.target === zoom) cerrarZoom();
+  });
+  zoomImg.addEventListener('click', () => zoomImg.classList.toggle('mas'));
+  $('zoomClose').addEventListener('click', cerrarZoom);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && zoom.hasAttribute('open')) cerrarZoom(); });
+
+  // ---------- las tarjetas entran con una animación corta ----------
+  const observador = (reduce || !window.IntersectionObserver) ? null : new IntersectionObserver(entradas => {
+    entradas.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observador.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+
+  function animarEntrada(cont) {
+    if (!observador) return;
+    cont.querySelectorAll('.card, .line, .equiv, .tipo-sep').forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.transitionDelay = Math.min(i, 8) * 28 + 'ms';
+      observador.observe(el);
+    });
+  }
+
+  render(PRODUCTS, 'Catálogo completo');
+  goSlide(0);
+  restartSlides();
+  showView(location.hash.slice(1) || 'inicio');
+</script>
+
+</body>
+</html>
